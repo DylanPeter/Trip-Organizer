@@ -9,5 +9,245 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ustinerary</title>
+    <link rel="stylesheet" href="/src/index.css">
+</head>
+<body>
+<body>
+
+  <h1>Travel Planning Checklist</h1>
+
+    <div class="section" id="hotels">
+    <h2>Hotels</h2>
+    <ul class="checklist" id="hotels-list">
+      <li><input type="checkbox" /> Book hotel rooms</li>
+      <li><input type="checkbox" /> Confirm reservations</li>
+      <li><input type="checkbox" /> Check-in online</li>
+    </ul>
+    <input type="text" placeholder="Add new hotel item" id="hotels-input" />
+    <button class="add-item" onclick="addItem('hotels')">Add</button>
+
+    <div class="notes-links" style="margin-top: 20px;">
+      <h3>Notes & Links</h3>
+
+      <div class="notes-links-input-group">
+        <input type="text" id="hotels-note-input" placeholder="Add a comment or note" />
+        <button class="add-item" onclick="addNote('hotels')">Add Note</button>
+      </div>
+
+      <div class="notes-links-input-group flex-row">
+        <input type="url" id="hotels-link-url-input" placeholder="Add a link URL (https://...)" />
+        <input type="text" id="hotels-link-text-input" placeholder="Link text (optional)" />
+        <button class="add-item" onclick="addLink('hotels')">Add Link</button>
+      </div>
+
+      <ul class="notes-links-list" id="hotels-notes-links-list"></ul>
+    </div>
+  </div>
+
+  <!-- Repeat for other sections, changing ids appropriately -->
+
+  <div class="section" id="air-travel">
+    <h2>Air Travel</h2>
+    <ul class="checklist" id="air-travel-list">
+      <li><input type="checkbox" /> Book flights</li>
+      <li><input type="checkbox" /> Check baggage policy</li>
+      <li><input type="checkbox" /> Print boarding passes</li>
+    </ul>
+    <input type="text" placeholder="Add new air travel item" id="air-travel-input" />
+    <button class="add-item" onclick="addItem('air-travel')">Add</button>
+
+    <div class="notes-links" style="margin-top: 20px;">
+      <h3>Notes & Links</h3>
+
+      <div class="notes-links-input-group">
+        <input type="text" id="air-travel-note-input" placeholder="Add a comment or note" />
+        <button class="add-item" onclick="addNote('air-travel')">Add Note</button>
+      </div>
+
+      <div class="notes-links-input-group flex-row">
+        <input type="url" id="air-travel-link-url-input" placeholder="Add a link URL (https://...)" />
+        <input type="text" id="air-travel-link-text-input" placeholder="Link text (optional)" />
+        <button class="add-item" onclick="addLink('air-travel')">Add Link</button>
+      </div>
+
+      <ul class="notes-links-list" id="air-travel-notes-links-list"></ul>
+    </div>
+  </div>
+
+  <div class="section" id="ground-transit">
+    <h2>Ground Transit</h2>
+    <ul class="checklist" id="ground-transit-list">
+      <li><input type="checkbox" /> Arrange airport transfer</li>
+      <li><input type="checkbox" /> Rent car</li>
+      <li><input type="checkbox" /> Check public transit options</li>
+    </ul>
+    <input type="text" placeholder="Add new ground transit item" id="ground-transit-input" />
+    <button class="add-item" onclick="addItem('ground-transit')">Add</button>
+
+    <div class="notes-links" style="margin-top: 20px;">
+      <h3>Notes & Links</h3>
+
+      <div class="notes-links-input-group">
+        <input type="text" id="ground-transit-note-input" placeholder="Add a comment or note" />
+        <button class="add-item" onclick="addNote('ground-transit')">Add Note</button>
+      </div>
+
+      <div class="notes-links-input-group flex-row">
+        <input type="url" id="ground-transit-link-url-input" placeholder="Add a link URL (https://...)" />
+        <input type="text" id="ground-transit-link-text-input" placeholder="Link text (optional)" />
+        <button class="add-item" onclick="addLink('ground-transit')">Add Link</button>
+      </div>
+
+      <ul class="notes-links-list" id="ground-transit-notes-links-list"></ul>
+    </div>
+  </div>
+
+  <div class="section" id="attractions">
+    <h2>Attractions</h2>
+    <ul class="checklist" id="attractions-list">
+      <li><input type="checkbox" /> Research must-see places</li>
+      <li><input type="checkbox" /> Buy tickets in advance</li>
+      <li><input type="checkbox" /> Plan daily itinerary</li>
+    </ul>
+    <input type="text" placeholder="Add new attraction" id="attractions-input" />
+    <button class="add-item" onclick="addItem('attractions')">Add</button>
+
+    <div class="notes-links" style="margin-top: 20px;">
+      <h3>Notes & Links</h3>
+
+      <div class="notes-links-input-group">
+        <input type="text" id="attractions-note-input" placeholder="Add a comment or note" />
+        <button class="add-item" onclick="addNote('attractions')">Add Note</button>
+      </div>
+
+      <div class="notes-links-input-group flex-row">
+        <input type="url" id="attractions-link-url-input" placeholder="Add a link URL (https://...)" />
+        <input type="text" id="attractions-link-text-input" placeholder="Link text (optional)" />
+        <button class="add-item" onclick="addLink('attractions')">Add Link</button>
+      </div>
+
+      <ul class="notes-links-list" id="attractions-notes-links-list"></ul>
+    </div>
+  </div>
+
+  <div class="section" id="food-dining">
+    <h2>Food and Dining</h2>
+    <ul class="checklist" id="food-dining-list">
+      <li><input type="checkbox" /> Find popular restaurants</li>
+      <li><input type="checkbox" /> Make reservations</li>
+      <li><input type="checkbox" /> Check dietary options</li>
+    </ul>
+    <input type="text" placeholder="Add new food/dining item" id="food-dining-input" />
+    <button class="add-item" onclick="addItem('food-dining')">Add</button>
+
+    <div class="notes-links" style="margin-top: 20px;">
+      <h3>Notes & Links</h3>
+
+      <div class="notes-links-input-group">
+        <input type="text" id="food-dining-note-input" placeholder="Add a comment or note" />
+        <button class="add-item" onclick="addNote('food-dining')">Add Note</button>
+      </div>
+
+      <div class="notes-links-input-group flex-row">
+        <input type="url" id="food-dining-link-url-input" placeholder="Add a link URL (https://...)" />
+        <input type="text" id="food-dining-link-text-input" placeholder="Link text (optional)" />
+        <button class="add-item" onclick="addLink('food-dining')">Add Link</button>
+      </div>
+
+      <ul class="notes-links-list" id="food-dining-notes-links-list"></ul>
+    </div>
+  </div>
+
+  <div class="section" id="pack-list">
+    <h2>Pack List</h2>
+    <ul class="checklist" id="pack-list-list">
+      <li><input type="checkbox" /> Clothes</li>
+      <li><input type="checkbox" /> Travel documents</li>
+      <li><input type="checkbox" /> Electronics & chargers</li>
+    </ul>
+    <input type="text" placeholder="Add new packing item" id="pack-list-input" />
+    <button class="add-item" onclick="addItem('pack-list')">Add</button>
+
+    <div class="notes-links" style="margin-top: 20px;">
+      <h3>Notes & Links</h3>
+
+      <div class="notes-links-input-group">
+        <input type="text" id="pack-list-note-input" placeholder="Add a comment or note" />
+        <button class="add-item" onclick="addNote('pack-list')">Add Note</button>
+      </div>
+
+      <div class="notes-links-input-group flex-row">
+        <input type="url" id="pack-list-link-url-input" placeholder="Add a link URL (https://...)" />
+        <input type="text" id="pack-list-link-text-input" placeholder="Link text (optional)" />
+        <button class="add-item" onclick="addLink('pack-list')">Add Link</button>
+      </div>
+
+      <ul class="notes-links-list" id="pack-list-notes-links-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    function addItem(sectionId) {
+      const input = document.getElementById(`${sectionId}-input`);
+      const list = document.getElementById(`${sectionId}-list`);
+      const value = input.value.trim();
+      if (value) {
+        const li = document.createElement('li');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        li.appendChild(checkbox);
+        li.appendChild(document.createTextNode(' ' + value));
+        list.appendChild(li);
+        input.value = '';
+      }
+    }
+
+    function addNote(sectionId) {
+      const noteInput = document.getElementById(`${sectionId}-note-input`);
+      const value = noteInput.value.trim();
+      if (value) {
+        const ul = document.getElementById(`${sectionId}-notes-links-list`);
+        const li = document.createElement('li');
+        li.textContent = value;
+        ul.appendChild(li);
+        noteInput.value = '';
+      }
+    }
+
+    function addLink(sectionId) {
+      const urlInput = document.getElementById(`${sectionId}-link-url-input`);
+      const textInput = document.getElementById(`${sectionId}-link-text-input`);
+      const url = urlInput.value.trim();
+      const text = textInput.value.trim() || url;
+      if (url) {
+        // Basic URL validation
+        try {
+          new URL(url);
+        } catch {
+          alert('Please enter a valid URL starting with http:// or https://');
+          return;
+        }
+        const ul = document.getElementById(`${sectionId}-notes-links-list`);
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = text;
+        li.appendChild(a);
+        ul.appendChild(li);
+        urlInput.value = '';
+        textInput.value = '';
+      }
+    }
+  </script>
+</body>
+</html>
   </body>
 </html>
