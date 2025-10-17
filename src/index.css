@@ -1,3 +1,23 @@
+:root {
+  /* ===== Colors ===== */
+  --color-primary: #BC6C25;
+  --color-secondary: #DDA15E;
+  --color-accent-1: #283618;
+  --color-accent-2: #606C38;
+  --color-background: #f2edf7;
+  --color-text: #130F1A;
+
+  /* ===== Fonts ===== */
+  --font-primary: "Open Sans", sans-serif;
+  --font-header: "Montserrat", sans-serif;
+
+  /* ===== Font Weights ===== */
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+
+  /* ===== Base Sizing ===== */
+  --font-size-base: 16px;
+}
 /* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
