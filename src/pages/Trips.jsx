@@ -6,12 +6,10 @@ export default function Trips() {
   const [trips, setTrips] = useState([]);
   const navigate = useNavigate();
 
-  // load on mount
   useEffect(() => {
     setTrips(getTrips());
   }, []);
 
-  // keep page in sync if localStorage changes in another tab/window
   useEffect(() => {
     const onStorage = (e) => {
       if (e.key === "trips.v1") setTrips(getTrips());
@@ -22,8 +20,8 @@ export default function Trips() {
 
   const handleCreate = () => {
     const id = createTrip({ name: "New Trip" });
-    setTrips(getTrips());      // refresh list
-    navigate(`/trips/${id}`);  // jump into it
+    setTrips(getTrips());      
+    navigate(`/trips/${id}`);  
   };
 
   const handleDelete = (id) => {
