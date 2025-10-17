@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import NavBar from "../components/NavBar/NavBar";
 import { getTrip } from "../utils/tripstore";
 import "../index.css";
 
@@ -53,44 +54,42 @@ export default function TripDetail() {
   }
 
   return (
-    <main className="detail-main">
-      <header className="trip-header">
-        <h1>{trip.name}</h1>
-        <p className="creation-details">
-          Created {new Date(trip.createdAt).toLocaleString()}
-        </p>
-      </header>
-
-      <section className="checklist-section">
-        <h2>Travel Planning Checklist</h2>
-
-        {Object.entries(sections).map(([key, items]) => (
-          <div key={key} className="checklist-category">
-            <h3>{key.replace(/([A-Z])/g, " $1")}</h3>
-
-            <ul className="checklist-items">
-              {items.map((item, i) => (
-                <li key={i} className="checklist-item">
-                  <label>
-                    <input type="checkbox" className="check-item-box" />
-                    <span>{item}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-
-            <AddItemForm
-              onAdd={(newItem) => addItem(key, newItem)}
-              placeholder={`Add new ${key.replace(/([A-Z])/g, " $1").toLowerCase()} item`}
-            />
-          </div>
-        ))}
-
-        <p className="back-to-trips">
-          <Link className="back-link" to="/trips">← All trips</Link>
-        </p>
-      </section>
-    </main>
+    <>
+      <NavBar></NavBar>
+      <main className="detail-main">
+        <header className="trip-header">
+          <h1>{trip.name}</h1>
+          <p className="creation-details">
+            Created {new Date(trip.createdAt).toLocaleString()}
+          </p>
+        </header>
+        <section className="checklist-section">
+          <h2>Travel Planning Checklist</h2>
+          {Object.entries(sections).map(([key, items]) => (
+            <div key={key} className="checklist-category">
+              <h3>{key.replace(/([A-Z])/g, " $1")}</h3>
+              <ul className="checklist-items">
+                {items.map((item, i) => (
+                  <li key={i} className="checklist-item">
+                    <label>
+                      <input type="checkbox" className="check-item-box" />
+                      <span>{item}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              <AddItemForm
+                onAdd={(newItem) => addItem(key, newItem)}
+                placeholder={`Add new ${key.replace(/([A-Z])/g, " $1").toLowerCase()} item`}
+              />
+            </div>
+          ))}
+          <p className="back-to-trips">
+            <Link className="back-link" to="/trips">← All trips</Link>
+          </p>
+        </section>
+      </main>
+    </>
   );
 }
 
