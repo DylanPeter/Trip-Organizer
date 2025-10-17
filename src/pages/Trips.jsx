@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import "./Trips.css";
 
 export default function Trips() {
   return (
