@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import "./Trips.css";
 
 export default function Trips() {
   const [trips, setTrips] = useState([]);
