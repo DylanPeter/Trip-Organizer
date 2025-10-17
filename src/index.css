@@ -1,5 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Montserrat:wght@600&display=swap');
+
 :root {
-  /* ===== Colors ===== */
   --color-primary: #BC6C25;
   --color-secondary: #DDA15E;
   --color-accent-1: #283618;
@@ -7,15 +8,11 @@
   --color-background: #f2edf7;
   --color-text: #130F1A;
 
-  /* ===== Fonts ===== */
   --font-primary: "Open Sans", sans-serif;
   --font-header: "Montserrat", sans-serif;
 
-  /* ===== Font Weights ===== */
   --font-weight-normal: 400;
   --font-weight-semibold: 600;
-
-  /* ===== Base Sizing ===== */
   --font-size-base: 16px;
 }
 
@@ -27,77 +24,135 @@ body {
   font-size: var(--font-size-base);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3 {
   font-family: var(--font-header);
   font-weight: var(--font-weight-semibold);
   color: var(--color-accent-1);
 }
 
-/* :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.detail-main {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+.trip-header {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
-body {
-  margin: 0;
+.creation-details {
+  color: var(--color-accent-2);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.checklist-section h2 {
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.checklist-category {
+  margin-bottom: 2.5rem;
+  padding: 1.25rem 1.5rem;
+  background-color: white;
+  border: 1px solid #e2dfe9;
+  border-radius: 0.75rem;
+}
+
+.checklist-category h3 {
+  text-transform: capitalize;
+  color: var(--color-accent-2);
+  margin-bottom: 0.75rem;
+}
+
+.checklist-items {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.5rem 0 1rem;
+}
+
+.checklist-item {
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.checklist-item span {
+  flex: 1;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+.check-item-box {
+  accent-color: var(--color-accent-2);
+  transform: scale(1.2);
+  margin-right: 0.5rem;
+}
+
+/* === Add Item Form Improvements === */
+.add-item-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #d6d0e0;
+}
+
+.add-input {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--color-primary);
+  background-color: #fff;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.add-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(188,108,37,0.2);
+  outline: none;
+}
+
+.add-btn {
+  background-color: var(--color-secondary);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  font-family: var(--font-header);
+  font-weight: var(--font-weight-semibold);
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-} */
+.add-btn:hover {
+  background-color: var(--color-primary);
+}
+
+.add-btn:active {
+  transform: scale(0.97);
+}
+
+/* Back link styling */
+.back-to-trips {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.back-link {
+  color: var(--color-accent-1);
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: var(--color-accent-2);
+}

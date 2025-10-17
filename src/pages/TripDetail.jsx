@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getTrip } from "../utils/tripstore";
+import "../index.css";
 
-// Key used to persist the checklist per trip
 const sectionsKey = (tripId) => `trip.${tripId}.sections.v1`;
 
 export default function TripDetail() {
   const { id } = useParams();
   const trip = getTrip(id);
 
-  //  1) Checklist state 
   const [sections, setSections] = useState({
     hotels: ["Book hotel rooms", "Confirm reservations", "Check-in online"],
     airTravel: ["Book flights", "Check baggage policy", "Print boarding passes"],
@@ -19,7 +18,7 @@ export default function TripDetail() {
     packList: ["Clothes", "Travel documents", "Electronics & chargers"],
   });
 
-  // ---- 2) Load/save checklist per trip ----
+  // Load saved checklist
   useEffect(() => {
     if (!id) return;
     try {
@@ -28,6 +27,7 @@ export default function TripDetail() {
     } catch {}
   }, [id]);
 
+  // Save checklist
   useEffect(() => {
     if (!id) return;
     try {
@@ -35,7 +35,6 @@ export default function TripDetail() {
     } catch {}
   }, [id, sections]);
 
-  //  3) Add item
   const addItem = (sectionKey, item) => {
     if (!item.trim()) return;
     setSections((prev) => ({
@@ -46,54 +45,55 @@ export default function TripDetail() {
 
   if (!trip) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="text-xl font-semibold mb-2">Trip not found</h1>
-        <Link to="/trips" className="text-slate-700 underline">Back to Trips</Link>
+      <main className="detail-main">
+        <h1>Trip not found</h1>
+        <Link className="back-link" to="/trips">← Back to Trips</Link>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold">{trip.name}</h1>
-        <p className="text-sm text-slate-500">
+    <main className="detail-main">
+      <header className="trip-header">
+        <h1>{trip.name}</h1>
+        <p className="creation-details">
           Created {new Date(trip.createdAt).toLocaleString()}
         </p>
       </header>
 
-      <h2 className="text-xl font-semibold mb-4">Travel Planning Checklist</h2>
+      <section className="checklist-section">
+        <h2>Travel Planning Checklist</h2>
 
-      {Object.entries(sections).map(([key, items]) => (
-        <div key={key} className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
-          <h3 className="text-lg font-semibold capitalize mb-2">
-            {key.replace(/([A-Z])/g, " $1")}
-          </h3>
+        {Object.entries(sections).map(([key, items]) => (
+          <div key={key} className="checklist-category">
+            <h3>{key.replace(/([A-Z])/g, " $1")}</h3>
 
-          <ul className="space-y-1 mb-3">
-            {items.map((item, i) => (
-              <li key={i} className="flex items-center gap-2">
-                <input type="checkbox" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+            <ul className="checklist-items">
+              {items.map((item, i) => (
+                <li key={i} className="checklist-item">
+                  <label>
+                    <input type="checkbox" className="check-item-box" />
+                    <span>{item}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
 
-          <AddItemForm
-            onAdd={(newItem) => addItem(key, newItem)}
-            placeholder={`Add new ${key.replace(/([A-Z])/g, " $1").toLowerCase()} item`}
-          />
-        </div>
-      ))}
+            <AddItemForm
+              onAdd={(newItem) => addItem(key, newItem)}
+              placeholder={`Add new ${key.replace(/([A-Z])/g, " $1").toLowerCase()} item`}
+            />
+          </div>
+        ))}
 
-      <p className="mt-6">
-        <Link to="/trips" className="text-slate-700 underline">All trips</Link>
-      </p>
+        <p className="back-to-trips">
+          <Link className="back-link" to="/trips">← All trips</Link>
+        </p>
+      </section>
     </main>
   );
 }
 
-//  Inline Add Item form (from your snippet) 
 function AddItemForm({ onAdd, placeholder }) {
   const [value, setValue] = useState("");
 
@@ -104,19 +104,14 @@ function AddItemForm({ onAdd, placeholder }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
+    <form onSubmit={handleSubmit} className="add-item-form">
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 rounded border px-3 py-2 text-sm"
+        className="add-input"
       />
-      <button
-        type="submit"
-        className="rounded bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800"
-      >
-        Add
-      </button>
+      <button type="submit" className="add-btn">Add</button>
     </form>
   );
 }
