@@ -1,20 +1,21 @@
-import { Link, NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 
 export default function NavBar() {
   return (
-    <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="text-lg font-semibold text-slate-900">
-          Trip Organizer
+    <header className="navbar">
+      <div className="navbar-container">
+        {/* Logo / Brand */}
+        <Link to="/" className="navbar-logo">
+          <span className="brand-primary">Us</span>
+          <span className="brand-secondary">Tinerary</span>
         </Link>
 
-        <nav className="flex items-center gap-3">
+        {/* Nav links */}
+        <nav className="navbar-links">
           <NavLink
             to="/trips"
             className={({ isActive }) =>
-              `rounded-lg px-3 py-2 text-sm ${
-                isActive ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100"
-              }`
+              `nav-item ${isActive ? "active" : ""}`
             }
           >
             Trips
@@ -23,9 +24,7 @@ export default function NavBar() {
           <NavLink
             to="/profile"
             className={({ isActive }) =>
-              `rounded-lg px-3 py-2 text-sm ${
-                isActive ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100"
-              }`
+              `nav-item ${isActive ? "active" : ""}`
             }
           >
             Profile

@@ -30,3 +30,12 @@ export function getTrip(id) {
 export function getTrips() {
   return loadTrips();
 }
+
+export function deleteTrip(id) {
+  const next = loadTrips().filter(t => t.id !== id);
+  saveTrips(next);
+}
+export function renameTrip(id, name) {
+  const next = loadTrips().map(t => (t.id === id ? { ...t, name } : t));
+  saveTrips(next);
+}

@@ -1,19 +1,55 @@
 import { Link } from "react-router-dom";
+import "./Trips.css";
 
 export default function Trips() {
+  const [trips, setTrips] = useState([]);
+  const navigate = useNavigate();
+
+  // load on mount
+  useEffect(() => {
+    setTrips(getTrips());
+  }, []);
+
+  // keep page in sync if localStorage changes in another tab/window
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === "trips.v1") setTrips(getTrips());
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  const handleCreate = () => {
+    const id = createTrip({ name: "New Trip" });
+    setTrips(getTrips());      // refresh list
+    navigate(`/trips/${id}`);  // jump into it
+  };
+
+  const handleDelete = (id) => {
+    if (!confirm("Delete this trip?")) return;
+    deleteTrip(id);
+    setTrips(getTrips());
+  };
+
+  const handleRename = (id, current) => {
+    const name = prompt("Trip name:", current);
+    if (name && name.trim()) {
+      renameTrip(id, name.trim());
+      setTrips(getTrips());
+    }
+  };
+
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-semibold mb-4">Trips</h1>
-      <div className="rounded-xl border border-slate-200 p-4 bg-white">
-        <p className="mb-3 text-slate-700">No trips yet.</p>
-        <button className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm">
-          + Start Planning
-        </button>
-        <p className="mt-4 text-sm text-slate-500">
+    <main className="trips-container">
+      <h1 className="trips-title">Trips</h1>
+      <div className="trips-card">
+        <p className="trips-message">No trips yet.</p>
+        <button className="trips-button">+ Start Planning</button>
+        <p className="trips-note">
           (Later this will create a new trip and open the checklist page.)
         </p>
-        <p className="mt-4">
-          <Link to="/" className="text-slate-700 underline">Back to Landing</Link>
+        <p className="trips-link">
+          <Link to="/">Back to Landing</Link>
         </p>
       </div>
     </main>

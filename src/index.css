@@ -30,6 +30,98 @@ h1, h2, h3 {
   color: var(--color-accent-1);
 }
 
+/* === Layout & Container === */
+.trips-container {
+  max-width: 700px;
+  margin: 4rem auto;
+  padding: 2rem;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background-color: #f8fafc;
+}
+
+/* === Title === */
+.trips-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* === Card === */
+.trips-card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: box-shadow 0.2s ease;
+}
+
+.trips-card:hover {
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+/* === Message Text === */
+.trips-message {
+  font-size: 1rem;
+  color: #475569;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+/* === Button === */
+.trips-button {
+  display: block;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 0.6rem 1.5rem;
+  background: linear-gradient(135deg, #DDA15E, #BC6C25);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.trips-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(30, 64, 175, 0.3);
+}
+
+.trips-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* === Note Text === */
+.trips-note {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #64748b;
+  text-align: center;
+}
+
+/* === Link Section === */
+.trips-link {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.trips-link a {
+  color: #606C38;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.trips-link a:hover {
+  color: #283618;
+  text-decoration: underline;
+}
+
 .detail-main {
   max-width: 700px;
   margin: 2rem auto;
