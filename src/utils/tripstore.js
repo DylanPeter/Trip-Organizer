@@ -15,6 +15,9 @@ export function createTrip(partial = {}) {
   const trip = {
     id: uid(),
     name: partial.name || "Untitled Trip",
+    location: partial.location || "",
+    dateStart: partial.dateStart || "",
+    dateEnd: partial.dateEnd || "",
     createdAt: new Date().toISOString(),
     ...partial,
   };
@@ -24,7 +27,7 @@ export function createTrip(partial = {}) {
 }
 
 export function getTrip(id) {
-  return loadTrips().find(t => t.id === id) || null;
+  return loadTrips().find((t) => t.id === id) || null;
 }
 
 export function getTrips() {
@@ -32,10 +35,16 @@ export function getTrips() {
 }
 
 export function deleteTrip(id) {
-  const next = loadTrips().filter(t => t.id !== id);
+  const next = loadTrips().filter((t) => t.id !== id);
   saveTrips(next);
 }
+
 export function renameTrip(id, name) {
-  const next = loadTrips().map(t => (t.id === id ? { ...t, name } : t));
+  const next = loadTrips().map((t) => (t.id === id ? { ...t, name } : t));
   saveTrips(next);
+}
+
+export function updateTripName(id, name) {
+  // convenience wrapper used by TripDetail
+  renameTrip(id, name);
 }
