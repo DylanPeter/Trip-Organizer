@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createTrip } from "../utils/tripstore";
+import { createTrip } from "../utils/tripStore";
 
 export default function TripCreate() {
   const navigate = useNavigate();

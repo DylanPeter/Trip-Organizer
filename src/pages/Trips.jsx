@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getTrips, createTrip, deleteTrip, renameTrip } from "../utils/tripstore";
+import { getTrips, createTrip, deleteTrip, renameTrip } from "../utils/tripStore";
 
 export default function Trips() {
   const [trips, setTrips] = useState([]);
   const navigate = useNavigate();
-  const goToCreate = () => navigate("/trips/new");
 
+  const goToCreate = () => navigate("/trips/new");
 
   useEffect(() => {
     setTrips(getTrips());
@@ -19,14 +19,6 @@ export default function Trips() {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
-
-  const handleCreate = () => {
-    const raw = prompt("Trip name:", "New Trip");
-    if (raw === null) return;
-    const id = createTrip({ name: raw.trim() || "Untitled Trip" });
-    setTrips(getTrips());
-    navigate(`/trips/${id}`);
-  };
 
   const handleDelete = (id) => {
     if (!confirm("Delete this trip?")) return;
@@ -43,26 +35,22 @@ export default function Trips() {
   };
 
   return (
-    <main className="mx-auto" style={{ maxWidth: 1000, padding: "2.5rem 1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-        <h1 className="text-2xl" style={{ margin: 0 }}>Your Trips</h1>
-        <button onClick={goToCreate} className="cta-btn">+ Create Trip</button>
-      </div>
-
-      {trips.length === 0 ? (
-        <div className="feature-card">
-          <p style={{ marginBottom: "0.75rem" }}>You don’t have any trips yet.</p>
-          <button onClick={goToCreate} className="cta-btn">Create your first trip</button>
-    <main className="trips-page">
-      <div className="trips-header">
-        <h1>Your Trips</h1>
-        <button onClick={handleCreate} className="cta-btn">+ Create Trip</button>
+    <main className="trips-page" style={{ maxWidth: 1000, margin: "0 auto", padding: "2.5rem 1rem" }}>
+      <div className="trips-header" style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+        <h1 className="text-2xl" style={{ margin: 0 }}>
+          Your Trips
+        </h1>
+        <button onClick={goToCreate} className="cta-btn">
+          + Create Trip
+        </button>
       </div>
 
       {trips.length === 0 ? (
         <div className="feature-card empty-state">
-          <p>You don’t have any trips yet.</p>
-          <button onClick={handleCreate} className="cta-btn">Create your first trip</button>
+          <p style={{ marginBottom: "0.75rem" }}>You don’t have any trips yet.</p>
+          <button onClick={goToCreate} className="cta-btn">
+            Create your first trip
+          </button>
         </div>
       ) : (
         <ul className="trip-list">
@@ -84,11 +72,11 @@ export default function Trips() {
                         ? `${t.dateStart}`
                         : "Dates TBA"}
                     </p>
-                    <p className="text-xs" style={{ opacity: 0.8 }}>
                     <p className="trip-date">
                       Created {new Date(t.createdAt).toLocaleString()}
                     </p>
                   </div>
+
                   <div className="trip-actions">
                     <button
                       onClick={() => handleRename(t.id, t.name)}
@@ -104,6 +92,7 @@ export default function Trips() {
                     </button>
                   </div>
                 </div>
+
                 <div className="trip-bottom">
                   <Link to={`/trips/${t.id}`} className="trip-link">
                     Open checklist →
