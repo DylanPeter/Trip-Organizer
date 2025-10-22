@@ -1,14 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { createTrip } from "../utils/tripstore";
 
 export default function Home() {
   const navigate = useNavigate();
-
-  const handleGetStarted = () => {
-    const id = createTrip({ name: "My Next Adventure" });
-    navigate(`/trips/${id}`);
-  };
+  const handleGetStarted = () => navigate("/trips/new");
 
   return (
     <main className="landing">

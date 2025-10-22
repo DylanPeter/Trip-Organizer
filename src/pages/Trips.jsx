@@ -5,6 +5,8 @@ import { getTrips, createTrip, deleteTrip, renameTrip } from "../utils/tripstore
 export default function Trips() {
   const [trips, setTrips] = useState([]);
   const navigate = useNavigate();
+  const goToCreate = () => navigate("/trips/new");
+
 
   useEffect(() => {
     setTrips(getTrips());
@@ -19,7 +21,9 @@ export default function Trips() {
   }, []);
 
   const handleCreate = () => {
-    const id = createTrip({ name: "New Trip" });
+    const raw = prompt("Trip name:", "New Trip");
+    if (raw === null) return;
+    const id = createTrip({ name: raw.trim() || "Untitled Trip" });
     setTrips(getTrips());
     navigate(`/trips/${id}`);
   };
@@ -39,6 +43,16 @@ export default function Trips() {
   };
 
   return (
+    <main className="mx-auto" style={{ maxWidth: 1000, padding: "2.5rem 1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+        <h1 className="text-2xl" style={{ margin: 0 }}>Your Trips</h1>
+        <button onClick={goToCreate} className="cta-btn">+ Create Trip</button>
+      </div>
+
+      {trips.length === 0 ? (
+        <div className="feature-card">
+          <p style={{ marginBottom: "0.75rem" }}>You don’t have any trips yet.</p>
+          <button onClick={goToCreate} className="cta-btn">Create your first trip</button>
     <main className="trips-page">
       <div className="trips-header">
         <h1>Your Trips</h1>
@@ -62,6 +76,15 @@ export default function Trips() {
                     <Link to={`/trips/${t.id}`} className="trip-name">
                       {t.name}
                     </Link>
+                    <p className="text-xs" style={{ opacity: 0.8 }}>
+                      {t.location ? `${t.location} • ` : ""}
+                      {t.dateStart && t.dateEnd
+                        ? `${t.dateStart} → ${t.dateEnd}`
+                        : t.dateStart
+                        ? `${t.dateStart}`
+                        : "Dates TBA"}
+                    </p>
+                    <p className="text-xs" style={{ opacity: 0.8 }}>
                     <p className="trip-date">
                       Created {new Date(t.createdAt).toLocaleString()}
                     </p>
