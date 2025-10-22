@@ -6,12 +6,10 @@ export default function Trips() {
   const [trips, setTrips] = useState([]);
   const navigate = useNavigate();
 
-  // Load on mount
   useEffect(() => {
     setTrips(getTrips());
   }, []);
 
-  // Sync if localStorage changes in another tab
   useEffect(() => {
     const onStorage = (e) => {
       if (e.key === "trips.v1") setTrips(getTrips());
@@ -41,44 +39,52 @@ export default function Trips() {
   };
 
   return (
-    <main className="mx-auto" style={{ maxWidth: 1000, padding: "2.5rem 1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-        <h1 className="text-2xl" style={{ margin: 0 }}>Your Trips</h1>
+    <main className="trips-page">
+      <div className="trips-header">
+        <h1>Your Trips</h1>
         <button onClick={handleCreate} className="cta-btn">+ Create Trip</button>
       </div>
 
       {trips.length === 0 ? (
-        <div className="feature-card">
-          <p style={{ marginBottom: "0.75rem" }}>You don’t have any trips yet.</p>
+        <div className="feature-card empty-state">
+          <p>You don’t have any trips yet.</p>
           <button onClick={handleCreate} className="cta-btn">Create your first trip</button>
         </div>
       ) : (
-        <ul style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+        <ul className="trip-list">
           {trips
             .slice()
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .map((t) => (
-              <li key={t.id} className="feature-card">
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
-                  <div>
-                    <Link to={`/trips/${t.id}`} className="text-slate-900" style={{ fontWeight: 600 }}>
+              <li key={t.id} className="feature-card trip-item">
+                <div className="trip-top">
+                  <div className="trip-info">
+                    <Link to={`/trips/${t.id}`} className="trip-name">
                       {t.name}
                     </Link>
-                    <p className="text-xs" style={{ opacity: 0.8 }}>
+                    <p className="trip-date">
                       Created {new Date(t.createdAt).toLocaleString()}
                     </p>
                   </div>
-                  <div style={{ display: "flex", gap: "0.25rem" }}>
-                    <button onClick={() => handleRename(t.id, t.name)} className="nav-item" style={{ padding: "4px 8px" }}>
+                  <div className="trip-actions">
+                    <button
+                      onClick={() => handleRename(t.id, t.name)}
+                      className="nav-item rename-btn"
+                    >
                       Rename
                     </button>
-                    <button onClick={() => handleDelete(t.id)} className="nav-item" style={{ padding: "4px 8px", color: "crimson" }}>
+                    <button
+                      onClick={() => handleDelete(t.id)}
+                      className="nav-item delete-btn"
+                    >
                       Delete
                     </button>
                   </div>
                 </div>
-                <div style={{ marginTop: "0.75rem" }}>
-                  <Link to={`/trips/${t.id}`} className="text-slate-700">Open checklist →</Link>
+                <div className="trip-bottom">
+                  <Link to={`/trips/${t.id}`} className="trip-link">
+                    Open checklist →
+                  </Link>
                 </div>
               </li>
             ))}
