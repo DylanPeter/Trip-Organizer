@@ -1,0 +1,32 @@
+.theme-cool-blues{
+  --color-primary: #17475B;
+  --color-secondary: #9FC1D8;
+  --color-accent-1: #653F3C;
+  --color-accent-2: yellow; /*change this later if needed*/
+  --color-background: #F0F0EE;
+  --color-text: #1B1C29;
+}
+.theme-forest{
+  --color-primary: #587E81;
+  --color-secondary: #C2B198;
+  --color-accent-1: #3C5C4F;
+  --color-accent-2: yellow; /*change this later if needed*/
+  --color-background: #E3E3E3;
+  --color-text: #252E27;
+}
+.theme-blue-and-orange{
+  --color-primary: #E36F43;
+  --color-secondary: #E6AA9A;
+  --color-accent-1: #173859;
+  --color-accent-2: #759ABC;
+  --color-background: #DBD6DB;
+  --color-text: #130F1A;
+}
+.original-ugly{
+  --color-primary: #BC6C25;
+  --color-secondary: #DDA15E;
+  --color-accent-1: #283618;
+  --color-accent-2: #606C38;
+  --color-background: #f2edf7;
+  --color-text: #130F1A;
+}

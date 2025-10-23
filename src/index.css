@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Montserrat:wght@600&display=swap');
 
 :root {
-  --color-primary: #BC6C25;
-  --color-secondary: #DDA15E;
-  --color-accent-1: #283618;
-  --color-accent-2: #606C38;
-  --color-background: #f2edf7;
+  --color-primary: #E36F43;
+  --color-secondary: #E6AA9A;
+  --color-accent-1: #173859;
+  --color-accent-2: #759ABC;
+  --color-background: #DBD6DB;
   --color-text: #130F1A;
 
   --font-primary: "Open Sans", sans-serif;
@@ -47,14 +47,6 @@ h1, h2, h3 {
   margin: 0 auto 4rem;
   box-shadow: 0 8px 16px rgba(0,0,0,0.08);
 }
-/* .hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45); 
-  border-radius: 1rem;
-  z-index: 1;
-} */
 .hero-content {
   position: relative;
   z-index: 2;
@@ -74,7 +66,7 @@ h1, h2, h3 {
 
 /* CTA Button */
 .cta-btn {
-  background: var(--color-accent-1);
+  background: var(--color-primary);
   color: #fff;
   font-family: var(--font-header);
   font-weight: var(--font-weight-semibold);
@@ -85,7 +77,7 @@ h1, h2, h3 {
   cursor: pointer;
   transition: background 0.25s ease, transform 0.15s ease;
 }
-.cta-btn:hover { background: var(--color-accent-2); transform: translateY(-1px); }
+.cta-btn:hover { background: var(--color-secondary); transform: translateY(-1px); }
 .cta-btn:active { transform: translateY(0); }
 
 /* Features */
@@ -434,20 +426,6 @@ h1, h2, h3 {
 /* ===========================
    Buttons
    =========================== */
-.cta-btn {
-  background-color: var(--color-primary);
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.6rem 1.1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.cta-btn:hover {
-  background-color: var(--color-primary-hover);
-}
 
 /* Inline actions */
 .nav-item {
