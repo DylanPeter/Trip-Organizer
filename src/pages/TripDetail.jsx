@@ -70,9 +70,9 @@ export default function TripDetail() {
 
   if (!trip) {
     return (
-      <main className="page-container">
-        <h1 className="page-title">Trip not found</h1>
-        <Link to="/trips" className="text-link">
+      <main className="detail-main">
+        <h1>Trip not found</h1>
+        <Link to="/trips" className="back-link">
           Back to Trips
         </Link>
       </main>
@@ -80,16 +80,15 @@ export default function TripDetail() {
   }
 
   return (
-    <main className="page-container">
+    <main className="detail-main">
       {/* Trip header with editable title */}
       <header className="trip-header">
         {editing ? (
-          <div className="trip-actions">
+          <div>
             <input
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
               autoFocus
-              className="trip-input"
               placeholder="Trip name"
             />
             <button onClick={saveName} className="cta-btn">
@@ -100,8 +99,8 @@ export default function TripDetail() {
             </button>
           </div>
         ) : (
-          <div className="trip-actions">
-            <h1 className="trip-title">{trip.name}</h1>
+          <div>
+            <h1>{trip.name}</h1>
             <button onClick={startEdit} className="nav-item">
               Rename
             </button>
@@ -119,18 +118,18 @@ export default function TripDetail() {
 
       {/* Checklist */}
       <section className="checklist-section">
-        <h2 className="section-heading">Travel Planning Checklist</h2>
+        <h2>Travel Planning Checklist</h2>
 
         {Object.entries(sections).map(([key, items]) => (
-          <div key={key} className="checklist-group">
-            <h3 className="checklist-title">
+          <div key={key} className="checklist-category">
+            <h3>
               {key.replace(/([A-Z])/g, " $1")}
             </h3>
 
-            <ul className="checklist-list">
+            <ul className="checklist-items">
               {items.map((item, i) => (
-                <li key={i} className="checklist-item">
-                  <input type="checkbox" />
+                <li key={i}>
+                  <input type="checkbox" className="check-item-box"/>
                   <span>{item}</span>
                 </li>
               ))}
@@ -146,8 +145,8 @@ export default function TripDetail() {
         ))}
       </section>
 
-      <footer className="trip-footer">
-        <Link to="/trips" className="text-link">
+      <footer>
+        <Link to="/trips" className="back-to-trips">
           ← Back to all trips
         </Link>
       </footer>
@@ -171,9 +170,9 @@ function AddItemForm({ onAdd, placeholder }) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="add-item-input"
+        className="add-input"
       />
-      <button type="submit" className="cta-btn">
+      <button type="submit" className="add-btn">
         Add
       </button>
     </form>
