@@ -1,4 +1,5 @@
 import { NavLink, Link } from "react-router-dom";
+import UserBadge from "../UserBadge"; 
 
 export default function NavBar() {
   return (
@@ -10,7 +11,7 @@ export default function NavBar() {
           <span className="brand-secondary">Tinerary</span>
         </Link>
 
-        {/* Nav links */}
+        {/* Nav links + UserBadge */}
         <nav className="navbar-links">
           <NavLink
             to="/trips"
@@ -29,6 +30,9 @@ export default function NavBar() {
           >
             Profile
           </NavLink>
+
+          {/* ✅ Added UserBadge here */}
+          <UserBadge />
         </nav>
       </div>
     </header>
