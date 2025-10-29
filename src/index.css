@@ -554,3 +554,285 @@ h1, h2, h3 {
   text-decoration: underline;
   color: var(--color-accent-hover);
 }
+
+.detail-main {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+  font-family: var(--font-primary);
+  color: var(--color-text);
+}
+
+/* ===== Trip Header ===== */
+.trip-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.trip-header h1 {
+  font-family: var(--font-header);
+  font-size: 2rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-1);
+  margin-bottom: 0.5rem;
+}
+
+.trip-header input {
+  font-size: 1.1rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--color-border, #e2e2e2);
+  border-radius: 0.5rem;
+  width: 100%;
+  max-width: 400px;
+  margin: 0.5rem auto;
+  display: block;
+  font-family: var(--font-primary);
+  box-sizing: border-box;
+}
+
+.trip-date {
+  color: var(--color-accent-2);
+  font-size: 0.95rem;
+}
+
+/* ===== Checklist Section ===== */
+.checklist-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.checklist-section h2 {
+  text-align: center;
+  font-family: var(--font-header);
+  color: var(--color-accent-1);
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+/* ===== Category Card ===== */
+.checklist-category {
+  background-color: #fff;
+  border: 1px solid var(--color-border, #e5e3ec);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md, 0 4px 10px rgba(0, 0, 0, 0.08));
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.checklist-category:hover {
+  box-shadow: var(--shadow-lg, 0 6px 14px rgba(0, 0, 0, 0.1));
+  transform: translateY(-2px);
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.checklist-category h3 {
+  text-transform: capitalize;
+  font-family: var(--font-header);
+  font-size: 1.2rem;
+  color: var(--color-accent-1);
+  margin: 0;
+}
+
+/* ===== Details Display ===== */
+.details-display {
+  background-color: #fafbfc;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.details-card {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.5rem 1rem;
+  word-wrap: break-word;
+}
+
+.details-label {
+  font-weight: 600;
+  color: var(--color-accent-1);
+}
+
+.details-value {
+  color: var(--color-text);
+}
+
+.details-preview {
+  font-style: italic;
+  color: var(--color-accent-2);
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ===== Details Form ===== */
+.details-form {
+  border: 1px solid var(--color-border, #e2e8f0);
+  background-color: #fff;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.details-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--color-accent-1);
+}
+
+.details-form input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  margin-bottom: 0.75rem;
+  font-family: var(--font-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.details-form input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(227, 111, 67, 0.25);
+}
+
+.details-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* ===== Buttons ===== */
+.detail-main button {
+  font-family: var(--font-header);
+  font-weight: var(--font-weight-semibold);
+  border-radius: 0.5rem;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.detail-main button:active {
+  transform: scale(0.98);
+}
+
+.cta-btn {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+.cta-btn:hover {
+  background-color: var(--color-secondary);
+}
+
+.nav-item {
+  background: transparent;
+  border: 1px solid var(--color-accent-2);
+  color: var(--color-accent-1);
+}
+.nav-item:hover {
+  background-color: var(--color-accent-2);
+  color: #fff;
+}
+
+/* ===== Checklist Items ===== */
+.checklist-items {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+}
+
+.checklist-items li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+  font-size: 0.95rem;
+}
+
+.check-item-box {
+  accent-color: var(--color-accent-1);
+  transform: scale(1.1);
+}
+
+/* ===== Add Item Form ===== */
+.add-item-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-top: 1px dashed var(--color-border, #d6d0e0);
+  padding-top: 0.75rem;
+  margin-top: 1rem;
+  box-sizing: border-box;
+}
+
+.add-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 0.5rem;
+  font-family: var(--font-primary);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.add-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(227, 111, 67, 0.2);
+  outline: none;
+}
+
+.add-btn {
+  background-color: var(--color-secondary);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-family: var(--font-header);
+  font-weight: var(--font-weight-semibold);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.add-btn:hover {
+  background-color: var(--color-primary);
+}
+.add-btn:active {
+  transform: scale(0.97);
+}
+
+/* ===== Back Link ===== */
+.back-to-trips {
+  display: block;
+  text-align: center;
+  margin-top: 2rem;
+  color: var(--color-accent-1);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+.back-to-trips:hover {
+  color: var(--color-accent-2);
+}
+
+.paired-inputs .pair-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.paired-inputs input[type="date"],
+.paired-inputs input[type="time"] {
+  flex: 1;
+  min-width: 0;
+}

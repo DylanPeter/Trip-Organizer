@@ -3,16 +3,13 @@ import { useParams, Link } from "react-router-dom";
 import { getTrip, updateTripName } from "../utils/tripstore";
 
 const sectionsKey = (tripId) => `trip.${tripId}.sections.v1`;
+const detailsKey = (tripId) => `trip.${tripId}.details.v10`;
 
 export default function TripDetail() {
   const { id } = useParams();
   const [trip, setTrip] = useState(() => getTrip(id));
-
-  // rename UI state
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState(trip?.name || "");
-
-  // checklist data
   const [sections, setSections] = useState({
     hotels: ["Book hotel rooms", "Confirm reservations", "Check-in online"],
     airTravel: ["Book flights", "Check baggage policy", "Print boarding passes"],
@@ -22,30 +19,46 @@ export default function TripDetail() {
     packList: ["Clothes", "Travel documents", "Electronics & chargers"],
   });
 
-  // load checklist from localStorage
+  const [details, setDetails] = useState({});
+  const [showForm, setShowForm] = useState({});
+  const [expandedSection, setExpandedSection] = useState({});
+  const [expandedEntry, setExpandedEntry] = useState({});
+
+  /* --- Load / Save --- */
   useEffect(() => {
     if (!id) return;
     try {
-      const raw = localStorage.getItem(sectionsKey(id));
-      if (raw) setSections(JSON.parse(raw));
+      const rawSections = localStorage.getItem(sectionsKey(id));
+      if (rawSections) setSections(JSON.parse(rawSections));
+      const rawDetails = localStorage.getItem(detailsKey(id));
+      if (rawDetails) {
+        const parsed = JSON.parse(rawDetails);
+        const upgraded = Object.fromEntries(
+          Object.entries(parsed).map(([k, v]) => [
+            k,
+            Array.isArray(v) ? v : [v],
+          ])
+        );
+        setDetails(upgraded);
+      }
     } catch {}
   }, [id]);
 
-  // save checklist changes
   useEffect(() => {
     if (!id) return;
     try {
       localStorage.setItem(sectionsKey(id), JSON.stringify(sections));
+      localStorage.setItem(detailsKey(id), JSON.stringify(details));
     } catch {}
-  }, [id, sections]);
+  }, [id, sections, details]);
 
-  // sync trip when ID changes
   useEffect(() => {
     const t = getTrip(id);
     setTrip(t);
     setNameInput(t?.name || "");
   }, [id]);
 
+  /* --- Helpers --- */
   const addItem = (sectionKey, item) => {
     if (!item.trim()) return;
     setSections((prev) => ({
@@ -54,6 +67,38 @@ export default function TripDetail() {
     }));
   };
 
+  const handleAddDetails = (sectionKey, formData, index = null) => {
+    setDetails((prev) => {
+      const existing = prev[sectionKey] || [];
+      if (index !== null) {
+        const updated = [...existing];
+        updated[index] = formData;
+        return { ...prev, [sectionKey]: updated };
+      } else {
+        return { ...prev, [sectionKey]: [...existing, formData] };
+      }
+    });
+    setShowForm((prev) => ({ ...prev, [sectionKey]: false }));
+    setExpandedSection((prev) => ({ ...prev, [sectionKey]: true }));
+  };
+
+  const handleDeleteDetails = (sectionKey, index) => {
+    setDetails((prev) => ({
+      ...prev,
+      [sectionKey]: prev[sectionKey].filter((_, i) => i !== index),
+    }));
+  };
+
+  const toggleSection = (key) =>
+    setExpandedSection((p) => ({ ...p, [key]: !p[key] }));
+
+  const toggleEntry = (sectionKey, i) =>
+    setExpandedEntry((p) => ({
+      ...p,
+      [sectionKey]: p[sectionKey] === i ? null : i,
+    }));
+
+  /* --- Trip Name --- */
   const startEdit = () => setEditing(true);
   const cancelEdit = () => {
     setNameInput(trip.name);
@@ -68,20 +113,110 @@ export default function TripDetail() {
     document.title = `${t.name} • UsTinerary`;
   };
 
-  if (!trip) {
+  /* --- Formatting --- */
+  const formatDate = (str) => {
+    if (!str) return "";
+    const d = new Date(str);
+    if (isNaN(d)) return str;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const formatDateTime = (date, time) => {
+    if (!date && !time) return "";
+    if (!date) return time;
+    if (!time) return formatDate(date);
+    try {
+      const combined = new Date(`${date}T${time}`);
+      return combined.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    } catch {
+      return `${formatDate(date)} ${time}`;
+    }
+  };
+
+  const getPreview = (entry, key) => {
+    const d = entry;
+    switch (key) {
+      case "hotels":
+        return d.hotelName
+          ? `${d.hotelName}${d.location ? `, ${d.location}` : ""}${
+              d.checkIn || d.checkOut
+                ? ` • ${formatDateTime(d.checkIn, d.checkInTime)}${
+                    d.checkOut || d.checkOutTime
+                      ? " – " + formatDateTime(d.checkOut, d.checkOutTime)
+                      : ""
+                  }`
+                : ""
+            }`
+          : null;
+      case "airTravel":
+        return d.airline
+          ? `${d.airline} ${d.flightNumber || ""}${
+              d.departureDate || d.arrivalDate
+                ? ` • ${formatDateTime(d.departureDate, d.departureTime)}${
+                    d.arrivalDate || d.arrivalTime
+                      ? " → " + formatDateTime(d.arrivalDate, d.arrivalTime)
+                      : ""
+                  }`
+                : ""
+            }`
+          : null;
+      case "groundTransit":
+        return d.provider
+          ? `${d.provider}${d.type ? ` (${d.type})` : ""}${
+              d.pickupDate || d.pickupTime
+                ? ` • ${formatDateTime(d.pickupDate, d.pickupTime)}${
+                    d.dropoffDate || d.dropoffTime
+                      ? " → " + formatDateTime(d.dropoffDate, d.dropoffTime)
+                      : ""
+                  }`
+                : ""
+            }`
+          : null;
+      case "attractions":
+        return d.attractionName
+          ? `${d.attractionName}${d.location ? `, ${d.location}` : ""}${
+              d.date ? ` • ${formatDateTime(d.date)}` : ""
+            }`
+          : null;
+      case "foodDining":
+        return d.restaurantName
+          ? `${d.restaurantName}${d.location ? `, ${d.location}` : ""}${
+              d.reservationTime ? ` • ${formatDateTime(d.reservationTime)}` : ""
+            }`
+          : null;
+      default:
+        return d.notes || null;
+    }
+  };
+
+  const renderFullDetails = (entry) => (
+    <div className="details-card">
+      {Object.entries(entry).map(([label, value]) =>
+        value ? (
+          <div key={label} className="details-row">
+            <span className="details-label">{formatLabel(label)}:</span>
+            <span className="details-value">{value}</span>
+          </div>
+        ) : null
+      )}
+    </div>
+  );
+
+  if (!trip)
     return (
       <main className="detail-main">
         <h1>Trip not found</h1>
-        <Link to="/trips" className="back-link">
-          Back to Trips
-        </Link>
+        <Link to="/trips">Back to Trips</Link>
       </main>
     );
-  }
 
   return (
     <main className="detail-main">
-      {/* Trip header with editable title */}
       <header className="trip-header">
         {editing ? (
           <div>
@@ -89,47 +224,111 @@ export default function TripDetail() {
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
               autoFocus
-              placeholder="Trip name"
             />
-            <button onClick={saveName} className="cta-btn">
-              Save
-            </button>
-            <button onClick={cancelEdit} className="nav-item">
-              Cancel
-            </button>
+            <button onClick={saveName}>Save</button>
+            <button onClick={cancelEdit}>Cancel</button>
           </div>
         ) : (
           <div>
             <h1>{trip.name}</h1>
-            <button onClick={startEdit} className="nav-item">
-              Rename
-            </button>
+            <button onClick={startEdit}>Rename</button>
           </div>
         )}
-          <p className="trip-date">
-            {trip.location ? `${trip.location} • ` : ""}
-            {trip.dateStart && trip.dateEnd
-              ? `${trip.dateStart} → ${trip.dateEnd}`
-              : trip.dateStart
-              ? `${trip.dateStart}`
-              : "Dates TBA"}
-          </p>
+        <p>
+          {trip.location ? `${trip.location} • ` : ""}
+          {trip.dateStart && trip.dateEnd
+            ? `${trip.dateStart} → ${trip.dateEnd}`
+            : trip.dateStart
+            ? trip.dateStart
+            : "Dates TBA"}
+        </p>
       </header>
 
-      {/* Checklist */}
       <section className="checklist-section">
         <h2>Travel Planning Checklist</h2>
 
         {Object.entries(sections).map(([key, items]) => (
           <div key={key} className="checklist-category">
-            <h3>
-              {key.replace(/([A-Z])/g, " $1")}
-            </h3>
+            <div className="category-header">
+              <h3>{key.replace(/([A-Z])/g, " $1")}</h3>
+              <button onClick={() => toggleSection(key)}>
+                {expandedSection[key] ? "Hide" : "Show"} Details
+              </button>
+            </div>
+
+            {expandedSection[key] && (
+              <div className="details-display">
+                <h4>Details</h4>
+                {details[key]?.length > 0 ? (
+                  details[key].map((entry, i) => (
+                    <div key={i} className="details-entry">
+                      <div className="details-preview">
+                        {getPreview(entry, key)}
+                      </div>
+                      <div className="form-actions">
+                        <button
+                          className="nav-item"
+                          onClick={() => toggleEntry(key, i)}
+                        >
+                          {expandedEntry[key] === i
+                            ? "Hide Details"
+                            : "View Details"}
+                        </button>
+                        <button
+                          className="nav-item"
+                          onClick={() =>
+                            setShowForm((p) => ({ ...p, [key]: i }))
+                          }
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="nav-item"
+                          onClick={() => handleDeleteDetails(key, i)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                      {expandedEntry[key] === i && renderFullDetails(entry)}
+                    </div>
+                  ))
+                ) : (
+                  <p className="details-preview">No details yet.</p>
+                )}
+                <button
+                  onClick={() => setShowForm((p) => ({ ...p, [key]: "new" }))}
+                  className="add-btn"
+                >
+                  + Add Another
+                </button>
+              </div>
+            )}
+
+            {showForm[key] !== false && (
+              <DetailsForm
+                sectionKey={key}
+                existing={
+                  showForm[key] === "new"
+                    ? null
+                    : details[key]?.[showForm[key]] || null
+                }
+                onSave={(section, formData) =>
+                  handleAddDetails(
+                    section,
+                    formData,
+                    showForm[key] === "new" ? null : showForm[key]
+                  )
+                }
+                onCancel={() =>
+                  setShowForm((prev) => ({ ...prev, [key]: false }))
+                }
+              />
+            )}
 
             <ul className="checklist-items">
               {items.map((item, i) => (
                 <li key={i}>
-                  <input type="checkbox" className="check-item-box"/>
+                  <input type="checkbox" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -154,16 +353,169 @@ export default function TripDetail() {
   );
 }
 
-// Form for adding new checklist items
+/* === DetailsForm === */
+function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
+  const getInitialState = () => {
+    switch (sectionKey) {
+      case "hotels":
+        return {
+          hotelName: "",
+          location: "",
+          checkIn: "",
+          checkInTime: "",
+          checkOut: "",
+          checkOutTime: "",
+        };
+      case "airTravel":
+        return {
+          airline: "",
+          flightNumber: "",
+          departureDate: "",
+          departureTime: "",
+          arrivalDate: "",
+          arrivalTime: "",
+        };
+      case "groundTransit":
+        return {
+          provider: "",
+          type: "",
+          pickupLocation: "",
+          dropoffLocation: "",
+          pickupDate: "",
+          pickupTime: "",
+          dropoffDate: "",
+          dropoffTime: "",
+        };
+      case "attractions":
+        return { attractionName: "", location: "", date: "", notes: "" };
+      case "foodDining":
+        return { restaurantName: "", location: "", reservationTime: "" };
+      case "packList":
+        return { notes: "" };
+      default:
+        return { notes: "" };
+    }
+  };
+
+  const [formData, setFormData] = useState(existing || getInitialState());
+  const [error, setError] = useState("");
+  const handleChange = (f, v) => setFormData((p) => ({ ...p, [f]: v }));
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const toDateTime = (d, t) => (d ? new Date(`${d}T${t || "00:00"}`) : null);
+
+    const pairs = [
+      ["checkIn", "checkInTime", "checkOut", "checkOutTime"],
+      ["departureDate", "departureTime", "arrivalDate", "arrivalTime"],
+      ["pickupDate", "pickupTime", "dropoffDate", "dropoffTime"],
+    ];
+
+    for (const [startD, startT, endD, endT] of pairs) {
+      const start = toDateTime(formData[startD], formData[startT]);
+      const end = toDateTime(formData[endD], formData[endT]);
+      if (start && end && start > end) {
+        setError(
+          `${formatLabel(startD)} must be before ${formatLabel(endD)}.`
+        );
+        return;
+      }
+    }
+
+    setError("");
+    onSave(sectionKey, formData);
+  };
+
+  const pairedFields = {
+    hotels: [["checkIn", "checkInTime"], ["checkOut", "checkOutTime"]],
+    airTravel: [["departureDate", "departureTime"], ["arrivalDate", "arrivalTime"]],
+    groundTransit: [
+      ["pickupDate", "pickupTime"],
+      ["dropoffDate", "dropoffTime"],
+    ],
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="details-form">
+      <h4>{existing ? "Edit Details" : "Add Details"}</h4>
+
+      {Object.keys(formData).map((f) => {
+        const isPaired =
+          Object.values(pairedFields)
+            .flat()
+            .some(([date, time]) => time === f);
+        if (isPaired) return null;
+
+        for (const group of pairedFields[sectionKey] || []) {
+          if (group[0] === f) {
+            return (
+              <div key={f} className="form-row paired-inputs">
+                <label>{formatLabel(f.replace("Date", ""))}:</label>
+                <div className="pair-group">
+                  <input
+                    type="date"
+                    value={formData[group[0]]}
+                    onChange={(e) => handleChange(group[0], e.target.value)}
+                  />
+                  <input
+                    type="time"
+                    value={formData[group[1]]}
+                    onChange={(e) => handleChange(group[1], e.target.value)}
+                  />
+                </div>
+              </div>
+            );
+          }
+        }
+
+        return (
+          <div key={f} className="form-row">
+            <label>{formatLabel(f)}:</label>
+            <input
+              type={
+                f.toLowerCase().includes("time")
+                  ? "time"
+                  : f.toLowerCase().includes("date")
+                  ? "date"
+                  : "text"
+              }
+              value={formData[f]}
+              onChange={(e) => handleChange(f, e.target.value)}
+            />
+          </div>
+        );
+      })}
+
+      {error && <p className="form-error">{error}</p>}
+
+      <div className="form-actions">
+        <button type="submit" className="cta-btn">
+          Save
+        </button>
+        <button type="button" onClick={onCancel} className="nav-item">
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/* === Utilities === */
+function formatLabel(str) {
+  return str
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (s) => s.toUpperCase())
+    .trim();
+}
+
 function AddItemForm({ onAdd, placeholder }) {
   const [value, setValue] = useState("");
-
   const handleSubmit = (e) => {
     e.preventDefault();
     onAdd(value);
     setValue("");
   };
-
   return (
     <form onSubmit={handleSubmit} className="add-item-form">
       <input
