@@ -828,3 +828,47 @@ h1, h2, h3 {
   min-width: 0;
 }
 
+.add-section-area {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.add-section-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.category-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rename-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.paired-inputs .pair-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.paired-inputs input[type="date"],
+.paired-inputs input[type="time"] {
+  flex: 1;
+  min-width: 0;
+}
+.details-form textarea {
+  width: 100%;
+  resize: vertical;
+}
+.form-error {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-error, #c00);
+}
+
