@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getProfile, saveProfile } from "../utils/profilestore"; 
 import "../styles/Profile.css";
 import { useAuth0 } from "@auth0/auth0-react";
+import NavBar from "../components/NavBar/NavBar.jsx"; 
 
 export default function Profile() {
   const { user, isLoading } = useAuth0();
@@ -60,76 +61,88 @@ export default function Profile() {
     setTimeout(() => setSaving(false), 250);
   };
 
-  // ✅ render a loader IN the return, not before hooks
-  return isLoading ? (
-    <div className="profile-loader" style={{ padding: "2rem", textAlign: "center" }}>
-      Loading profile…
-    </div>
-  ) : (
-    <section className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-semibold mb-4">My Profile</h1>
+  // Render loader while Auth0 initializes
+  if (isLoading) {
+    return (
+      <>
+        <NavBar />
+        <div className="profile-loader" style={{ padding: "2rem", textAlign: "center" }}>
+          Loading profile…
+        </div>
+      </>
+    );
+  }
 
-      <div className="flex items-center gap-4 mb-4">
-        <img
-          src={
-            preview ||
-            form.avatarUrl ||
-            "https://via.placeholder.com/80?text=Avatar"
-          }
-          alt="avatar"
-          className="h-20 w-20 rounded-full object-cover border"
-        />
-        <label className="px-3 py-2 border rounded cursor-pointer">
-          <input type="file" accept="image/*" onChange={onAvatar} hidden />
-          Upload Avatar
-        </label>
-      </div>
+  // Main profile view
+  return (
+    <>
+      <NavBar /> {/* ✅ Added navbar at the top */}
 
-      <div className="grid gap-3">
-        <label className="grid gap-1">
-          <span className="text-sm">Name</span>
-          <input
-            className="border rounded p-2"
-            name="name"
-            value={form.name}
-            onChange={onChange}
-            placeholder="Your name"
-            disabled={!!user}  /* optional: lock if Auth0 present */
+      <section className="max-w-2xl mx-auto p-4">
+        <h1 className="text-2xl font-semibold mb-4">My Profile</h1>
+
+        <div className="flex items-center gap-4 mb-4">
+          <img
+            src={
+              preview ||
+              form.avatarUrl ||
+              "https://via.placeholder.com/80?text=Avatar"
+            }
+            alt="avatar"
+            className="h-20 w-20 rounded-full object-cover border"
           />
-        </label>
+          <label className="px-3 py-2 border rounded cursor-pointer">
+            <input type="file" accept="image/*" onChange={onAvatar} hidden />
+            Upload Avatar
+          </label>
+        </div>
 
-        <label className="grid gap-1">
-          <span className="text-sm">Email</span>
-          <input
-            className="border rounded p-2"
-            name="email"
-            value={form.email || ""}
-            onChange={onChange}
-            placeholder="you@example.com"
-            disabled={!!user}  /* optional: lock if Auth0 present */
-          />
-        </label>
+        <div className="grid gap-3">
+          <label className="grid gap-1">
+            <span className="text-sm">Name</span>
+            <input
+              className="border rounded p-2"
+              name="name"
+              value={form.name}
+              onChange={onChange}
+              placeholder="Your name"
+              disabled={!!user} // lock if Auth0 logged in
+            />
+          </label>
 
-        <label className="grid gap-1">
-          <span className="text-sm">Bio</span>
-          <textarea
-            className="border rounded p-2"
-            rows={4}
-            name="bio"
-            value={form.bio || ""}
-            onChange={onChange}
-            placeholder="Tell people about you…"
-          />
-        </label>
+          <label className="grid gap-1">
+            <span className="text-sm">Email</span>
+            <input
+              className="border rounded p-2"
+              name="email"
+              value={form.email || ""}
+              onChange={onChange}
+              placeholder="you@example.com"
+              disabled={!!user} // lock if Auth0 logged in
+            />
+          </label>
 
-        <button
-          onClick={save}
-          disabled={saving}
-          className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
-        >
-          {saving ? "Saving…" : "Save Changes"}
-        </button>
-      </div>
-    </section>
+          <label className="grid gap-1">
+            <span className="text-sm">Bio</span>
+            <textarea
+              className="border rounded p-2"
+              rows={4}
+              name="bio"
+              value={form.bio || ""}
+              onChange={onChange}
+              placeholder="Tell people about you…"
+            />
+          </label>
+
+          <button
+            onClick={save}
+            disabled={saving}
+            className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save Changes"}
+          </button>
+        </div>
+      </section>
+    </>
   );
 }

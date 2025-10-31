@@ -18,7 +18,6 @@ export default function App() {
         <Route path="/trips/new" element={<TripCreate />} />
         <Route path="/trips" element={<Trips />} />
         <Route path="/trips/:id" element={<TripDetail />} />
-        <Route path="/profile" element={<Profile />} />
         </Route>
       </Routes>
     </BrowserRouter>
