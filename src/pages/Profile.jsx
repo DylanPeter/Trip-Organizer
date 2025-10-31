@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getProfile, saveProfile } from "../utils/profilestore";
 import "../styles/Profile.css";
 import { useAuth0 } from "@auth0/auth0-react";
+import NavBar from "../components/NavBar/NavBar.jsx"; 
 
 export default function Profile() {
   const { user, isLoading } = useAuth0();
@@ -57,66 +58,72 @@ export default function Profile() {
   };
 
   return isLoading ? (
-    <div className="profile-loader" style={{ padding: "2rem", textAlign: "center" }}>
-      Loading profile…
-    </div>
+    <>
+      <NavBar /> 
+      <div className="profile-loader" style={{ padding: "2rem", textAlign: "center" }}>
+        Loading profile…
+      </div>
+    </>
   ) : (
-    <section className="profile-page">
-      <h1>My Profile</h1>
+    <>
+      <NavBar /> 
+      <section className="profile-page">
+        <h1>My Profile</h1>
 
-      <div className="flex">
-        <img
-          src={
-            preview ||
-            form.avatarUrl ||
-            "https://via.placeholder.com/80?text=Avatar"
-          }
-          alt="avatar"
-        />
-        <label className="cursor-pointer">
-          <input type="file" accept="image/*" onChange={onAvatar} hidden />
-          Upload Avatar
-        </label>
-      </div>
-
-      <div className="grid gap-3">
-        <label className="grid gap-1">
-          <span>Name</span>
-          <input
-            name="name"
-            value={form.name}
-            onChange={onChange}
-            placeholder="Your name"
-            disabled={!!user}
+        <div className="flex">
+          <img
+            src={
+              preview ||
+              form.avatarUrl ||
+              "https://via.placeholder.com/80?text=Avatar"
+            }
+            alt="avatar"
           />
-        </label>
+          <label className="cursor-pointer">
+            <input type="file" accept="image/*" onChange={onAvatar} hidden />
+            Upload Avatar
+          </label>
+        </div>
 
-        <label className="grid gap-1">
-          <span>Email</span>
-          <input
-            name="email"
-            value={form.email || ""}
-            onChange={onChange}
-            placeholder="you@example.com"
-            disabled={!!user}
-          />
-        </label>
+        <div className="grid gap-3">
+          <label className="grid gap-1">
+            <span>Name</span>
+            <input
+              name="name"
+              value={form.name}
+              onChange={onChange}
+              placeholder="Your name"
+              disabled={!!user}
+            />
+          </label>
 
-        <label className="grid gap-1">
-          <span>Bio</span>
-          <textarea
-            rows={4}
-            name="bio"
-            value={form.bio || ""}
-            onChange={onChange}
-            placeholder="Tell people about you…"
-          />
-        </label>
+          <label className="grid gap-1">
+            <span>Email</span>
+            <input
+              name="email"
+              value={form.email || ""}
+              onChange={onChange}
+              placeholder="you@example.com"
+              disabled={!!user}
+            />
+          </label>
 
-        <button onClick={save} disabled={saving}>
-          {saving ? "Saving…" : "Save Changes"}
-        </button>
-      </div>
-    </section>
+          <label className="grid gap-1">
+            <span>Bio</span>
+            <textarea
+              rows={4}
+              name="bio"
+              value={form.bio || ""}
+              onChange={onChange}
+              placeholder="Tell people about you…"
+            />
+          </label>
+
+          <button onClick={save} disabled={saving}>
+            {saving ? "Saving…" : "Save Changes"}
+          </button>
+        </div>
+      </section>
+    </>
   );
 }
