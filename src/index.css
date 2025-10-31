@@ -554,3 +554,20 @@ h1, h2, h3 {
   text-decoration: underline;
   color: var(--color-accent-hover);
 }
+
+/* ===========================
+   Footer
+   =========================== */
+.footer {
+  margin-top: 2rem;
+  padding: 1rem 0;
+  text-align: center;
+  font-family: var(--font-primary);
+  font-size: 0.8rem;
+  color: var(--color-accent-1);
+  opacity: 0.8
+}
+.footer-p {
+  color: var(--color-accent-1);
+  font-size: 0.9;
+}
