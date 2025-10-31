@@ -16,6 +16,10 @@ export function createTrip(partial = {}) {
     id: uid(),
     name: partial.name || "Untitled Trip",
     location: partial.location || "",
+    latitude: partial.latitude || null,   // 🆕 added
+    longitude: partial.longitude || null, // 🆕 added
+    city: partial.city || "",             // 🆕 added
+    country: partial.country || "",       // 🆕 added
     dateStart: partial.dateStart || "",
     dateEnd: partial.dateEnd || "",
     createdAt: new Date().toISOString(),

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getTrip, updateTripName } from "../utils/tripStore";
+import { getTrip, updateTripName } from "../utils/tripstore";
 
 const sectionsKey = (tripId) => `trip.${tripId}.sections.v1`;
 const detailsKey = (tripId) => `trip.${tripId}.details.v16`;
