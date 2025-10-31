@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { getProfile, saveProfile } from "../utils/profilestore"; 
+import { getProfile, saveProfile } from "../utils/profilestore";
 import "../styles/Profile.css";
 import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Profile() {
   const { user, isLoading } = useAuth0();
 
-  // initialize from local profile, then merge in Auth0 user if present
   const [form, setForm] = useState(() => {
     const base = getProfile();
     return {
@@ -20,7 +19,6 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState(user?.picture || form.avatarUrl || "");
 
-  // sync when Auth0 user becomes available/changes
   useEffect(() => {
     setForm((f) => ({
       ...f,
@@ -31,7 +29,6 @@ export default function Profile() {
     setPreview((p) => p || user?.picture || "");
   }, [user]);
 
-  // listen for localStorage changes from other tabs/components
   useEffect(() => {
     const onStorage = (e) => e.key === "profile.v1" && setForm(getProfile());
     window.addEventListener("storage", onStorage);
@@ -53,23 +50,21 @@ export default function Profile() {
 
   const save = () => {
     setSaving(true);
-    // don’t overwrite Auth0-managed fields locally when logged in
     const { name, email, ...rest } = form;
     const payload = user ? rest : form;
     saveProfile(payload);
     setTimeout(() => setSaving(false), 250);
   };
 
-  // ✅ render a loader IN the return, not before hooks
   return isLoading ? (
     <div className="profile-loader" style={{ padding: "2rem", textAlign: "center" }}>
       Loading profile…
     </div>
   ) : (
-    <section className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-semibold mb-4">My Profile</h1>
+    <section className="profile-page">
+      <h1>My Profile</h1>
 
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex">
         <img
           src={
             preview ||
@@ -77,9 +72,8 @@ export default function Profile() {
             "https://via.placeholder.com/80?text=Avatar"
           }
           alt="avatar"
-          className="h-20 w-20 rounded-full object-cover border"
         />
-        <label className="px-3 py-2 border rounded cursor-pointer">
+        <label className="cursor-pointer">
           <input type="file" accept="image/*" onChange={onAvatar} hidden />
           Upload Avatar
         </label>
@@ -87,33 +81,30 @@ export default function Profile() {
 
       <div className="grid gap-3">
         <label className="grid gap-1">
-          <span className="text-sm">Name</span>
+          <span>Name</span>
           <input
-            className="border rounded p-2"
             name="name"
             value={form.name}
             onChange={onChange}
             placeholder="Your name"
-            disabled={!!user}  /* optional: lock if Auth0 present */
+            disabled={!!user}
           />
         </label>
 
         <label className="grid gap-1">
-          <span className="text-sm">Email</span>
+          <span>Email</span>
           <input
-            className="border rounded p-2"
             name="email"
             value={form.email || ""}
             onChange={onChange}
             placeholder="you@example.com"
-            disabled={!!user}  /* optional: lock if Auth0 present */
+            disabled={!!user}
           />
         </label>
 
         <label className="grid gap-1">
-          <span className="text-sm">Bio</span>
+          <span>Bio</span>
           <textarea
-            className="border rounded p-2"
             rows={4}
             name="bio"
             value={form.bio || ""}
@@ -122,11 +113,7 @@ export default function Profile() {
           />
         </label>
 
-        <button
-          onClick={save}
-          disabled={saving}
-          className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
-        >
+        <button onClick={save} disabled={saving}>
           {saving ? "Saving…" : "Save Changes"}
         </button>
       </div>
