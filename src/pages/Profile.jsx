@@ -1,19 +1,41 @@
-// src/pages/Profile.jsx
-import React, { useEffect, useState } from 'react';
-import { getProfile, saveProfile } from '../utils/profilestore';
+import React, { useEffect, useState } from "react";
+import { getProfile, saveProfile } from "../utils/profilestore"; 
 import "../styles/Profile.css";
+import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Profile() {
-  const [form, setForm] = useState(getProfile());
-  const [saving, setSaving] = useState(false);
-  const [preview, setPreview] = useState(form.avatarUrl || '');
+  const { user, isLoading } = useAuth0();
 
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === 'profile.v1') setForm(getProfile());
+  // initialize from local profile, then merge in Auth0 user if present
+  const [form, setForm] = useState(() => {
+    const base = getProfile();
+    return {
+      ...base,
+      name: user?.name ?? base.name,
+      email: user?.email ?? base.email,
+      avatarUrl: user?.picture ?? base.avatarUrl,
     };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+  });
+
+  const [saving, setSaving] = useState(false);
+  const [preview, setPreview] = useState(user?.picture || form.avatarUrl || "");
+
+  // sync when Auth0 user becomes available/changes
+  useEffect(() => {
+    setForm((f) => ({
+      ...f,
+      name: user?.name ?? f.name,
+      email: user?.email ?? f.email,
+      avatarUrl: user?.picture ?? f.avatarUrl,
+    }));
+    setPreview((p) => p || user?.picture || "");
+  }, [user]);
+
+  // listen for localStorage changes from other tabs/components
+  useEffect(() => {
+    const onStorage = (e) => e.key === "profile.v1" && setForm(getProfile());
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,21 +45,28 @@ export default function Profile() {
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPreview(url);
-
     const reader = new FileReader();
     reader.onload = () =>
-      setForm((f) => ({ ...f, avatarUrl: reader.result || '' }));
+      setForm((f) => ({ ...f, avatarUrl: reader.result || "" }));
     reader.readAsDataURL(file);
   };
 
   const save = () => {
     setSaving(true);
-    saveProfile(form);
+    // don’t overwrite Auth0-managed fields locally when logged in
+    const { name, email, ...rest } = form;
+    const payload = user ? rest : form;
+    saveProfile(payload);
     setTimeout(() => setSaving(false), 250);
   };
 
-  return (
-    <section className="profile-page max-w-2xl mx-auto p-4">
+  // ✅ render a loader IN the return, not before hooks
+  return isLoading ? (
+    <div className="profile-loader" style={{ padding: "2rem", textAlign: "center" }}>
+      Loading profile…
+    </div>
+  ) : (
+    <section className="max-w-2xl mx-auto p-4">
       <h1 className="text-2xl font-semibold mb-4">My Profile</h1>
 
       <div className="flex items-center gap-4 mb-4">
@@ -45,7 +74,7 @@ export default function Profile() {
           src={
             preview ||
             form.avatarUrl ||
-            'https://via.placeholder.com/80?text=Avatar'
+            "https://via.placeholder.com/80?text=Avatar"
           }
           alt="avatar"
           className="h-20 w-20 rounded-full object-cover border"
@@ -65,6 +94,7 @@ export default function Profile() {
             value={form.name}
             onChange={onChange}
             placeholder="Your name"
+            disabled={!!user}  /* optional: lock if Auth0 present */
           />
         </label>
 
@@ -73,9 +103,10 @@ export default function Profile() {
           <input
             className="border rounded p-2"
             name="email"
-            value={form.email || ''}
+            value={form.email || ""}
             onChange={onChange}
             placeholder="you@example.com"
+            disabled={!!user}  /* optional: lock if Auth0 present */
           />
         </label>
 
@@ -85,7 +116,7 @@ export default function Profile() {
             className="border rounded p-2"
             rows={4}
             name="bio"
-            value={form.bio || ''}
+            value={form.bio || ""}
             onChange={onChange}
             placeholder="Tell people about you…"
           />
@@ -96,7 +127,7 @@ export default function Profile() {
           disabled={saving}
           className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
         >
-          {saving ? 'Saving…' : 'Save Changes'}
+          {saving ? "Saving…" : "Save Changes"}
         </button>
       </div>
     </section>
