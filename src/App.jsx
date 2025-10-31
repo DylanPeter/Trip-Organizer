@@ -5,12 +5,14 @@ import Trips from "./pages/Trips";
 import TripDetail from "./pages/TripDetail";
 import Profile from "./pages/Profile";
 import TripCreate from "./pages/TripCreate";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* All routes below will include the NavBar */}
+        <Route path="/profile" element={ <ProtectedRoute> <Profile /> </ProtectedRoute> }/>
         <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/trips/new" element={<TripCreate />} />
