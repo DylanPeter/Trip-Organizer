@@ -24,7 +24,6 @@ export default function Profile() {
     const url = URL.createObjectURL(file);
     setPreview(url);
 
-    // store as DataURL locally (easy; later you can swap to real uploads)
     const reader = new FileReader();
     reader.onload = () =>
       setForm((f) => ({ ...f, avatarUrl: reader.result || '' }));
@@ -34,12 +33,11 @@ export default function Profile() {
   const save = () => {
     setSaving(true);
     saveProfile(form);
-    // tiny UX pause
     setTimeout(() => setSaving(false), 250);
   };
 
   return (
-    <section className="max-w-2xl mx-auto p-4">
+    <section className="profile-page max-w-2xl mx-auto p-4">
       <h1 className="text-2xl font-semibold mb-4">My Profile</h1>
 
       <div className="flex items-center gap-4 mb-4">

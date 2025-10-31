@@ -1,107 +1,115 @@
-/* Profile Page Styling
+/* Profile Page Styling (scoped to .profile-page)
    Matches Trip Organizer’s simple, card-based UI aesthetic
 */
 
-section {
-    max-width: 600px;
-    background-color: #ffffff;
-    margin-top: 3rem;
-    margin: 3rem auto; 
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  }
-  
-  /* Title */
-  section h1 {
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    color: #001b2e; /* same navy tone from your palette */
-    text-align: center;
-  }
-  
-  /* Avatar + Upload */
-  section .flex {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  section img {
-    border-radius: 50%;
-    width: 90px;
-    height: 90px;
-    object-fit: cover;
-    border: 2px solid #294c60; /* medium blue accent */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  }
-  
-  section label[for="file"],
-  section label.cursor-pointer {
-    background-color: #294c60; /* button blue */
-    color: #fff;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-    border: none;
-  }
-  
-  section label.cursor-pointer:hover {
-    background-color: #1d394b;
-  }
-  
-  /* Input Fields */
-  section input,
-  section textarea {
-    width: 100%;
-    padding: 0.6rem 0.75rem;
-    border: 1px solid #d0d7de;
-    border-radius: 6px;
-    font-size: 1rem;
-    background-color: #f9fafb;
-    transition: border-color 0.2s ease;
-  }
-  
-  section input:focus,
-  section textarea:focus {
-    outline: none;
-    border-color: #294c60;
-    background-color: #fff;
-  }
-  
-  /* Labels */
-  section label span {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #374151;
-    margin-bottom: 0.25rem;
-  }
-  
-  /* Save Button */
-  section button {
-    background-color: #001b2e; /* deep navy */
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 0.75rem;
-    font-size: 1rem;
-    font-weight: 500;
-    margin-top: 1rem;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
-  }
-  
-  section button:hover:not(:disabled) {
-    background-color: #294c60;
-    transform: translateY(-1px);
-  }
-  
-  section button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+.profile-page {
+  max-width: 600px;
+  background-color: #ffffff;
+  margin: 3rem auto;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Title */
+.profile-page h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #001b2e;
+  text-align: center;
+}
+
+/* Avatar + Upload */
+.profile-page .flex {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.profile-page img {
+  border-radius: 50%;
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border: 2px solid #294c60;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.profile-page label[for="file"],
+.profile-page label.cursor-pointer {
+  background-color: #294c60;
+  color: #fff;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border: none;
+}
+
+.profile-page label.cursor-pointer:hover {
+  background-color: #1d394b;
+}
+
+/* Input Fields */
+.profile-page input,
+.profile-page textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 1rem;
+  background-color: #f9fafb;
+  transition: border-color 0.2s ease;
+}
+
+.profile-page input:focus,
+.profile-page textarea:focus {
+  outline: none;
+  border-color: #294c60;
+  background-color: #fff;
+}
+
+/* Labels */
+.profile-page label span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+/* Save Button */
+.profile-page button {
+  background-color: #001b2e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.profile-page button:hover:not(:disabled) {
+  background-color: #294c60;
+  transform: translateY(-1px);
+}
+
+.profile-page button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+nav img,
+.nav-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+}
