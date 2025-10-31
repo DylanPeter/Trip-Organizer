@@ -1,6 +1,7 @@
 // src/pages/Profile.jsx
 import React, { useEffect, useState } from 'react';
 import { getProfile, saveProfile } from '../utils/profilestore';
+import "../styles/Profile.css";
 
 export default function Profile() {
   const [form, setForm] = useState(getProfile());
