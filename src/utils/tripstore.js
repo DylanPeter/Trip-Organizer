@@ -1,29 +1,50 @@
-const KEY = "trips.v1";
+// ---- Single storage key ----
+const TRIPS_KEY = "trips.v1";
 
+// ---- Core persistence helpers (single definitions) ----
 function loadTrips() {
-  try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; }
-}
-function saveTrips(trips) {
-  localStorage.setItem(KEY, JSON.stringify(trips));
-}
-function uid() {
-  return Math.random().toString(36).slice(2, 9);
+  try {
+    return JSON.parse(localStorage.getItem(TRIPS_KEY)) || [];
+  } catch {
+    return [];
+  }
 }
 
+function saveTrips(trips) {
+  localStorage.setItem(TRIPS_KEY, JSON.stringify(trips));
+
+  // Notify other parts of the app immediately (same-tab)
+  // Note: native 'storage' only fires across tabs; we synthesize one for this tab.
+  try {
+    window.dispatchEvent(new StorageEvent("storage", { key: TRIPS_KEY }));
+  } catch {
+    // Some browsers restrict StorageEvent construction; fall back to a custom event.
+    window.dispatchEvent(new Event("trips.updated"));
+  }
+}
+
+// Small uid helper (fallback if crypto.randomUUID is unavailable)
+function uid() {
+  return (typeof crypto !== "undefined" && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2, 9);
+}
+
+// ---- Trips API ----
 export function createTrip(partial = {}) {
   const trips = loadTrips();
   const trip = {
     id: uid(),
     name: partial.name || "Untitled Trip",
     location: partial.location || "",
-    latitude: partial.latitude || null,   // 🆕 added
-    longitude: partial.longitude || null, // 🆕 added
-    city: partial.city || "",             // 🆕 added
-    country: partial.country || "",       // 🆕 added
+    latitude: partial.latitude ?? null,
+    longitude: partial.longitude ?? null,
+    city: partial.city || "",
+    country: partial.country || "",
     dateStart: partial.dateStart || "",
     dateEnd: partial.dateEnd || "",
     createdAt: new Date().toISOString(),
-    ...partial,
+    ...partial, // allow additional fields to be set by caller
   };
   trips.push(trip);
   saveTrips(trips);
@@ -48,7 +69,74 @@ export function renameTrip(id, name) {
   saveTrips(next);
 }
 
+// convenience wrapper used by TripDetail
 export function updateTripName(id, name) {
-  // convenience wrapper used by TripDetail
   renameTrip(id, name);
+}
+
+// Upsert a full trip object (used by comments helpers)
+function setTrip(updated) {
+  const trips = loadTrips();
+  const idx = trips.findIndex((t) => t.id === updated.id);
+  if (idx === -1) trips.push(updated);
+  else trips[idx] = updated;
+  saveTrips(trips);
+}
+
+// ---- Comments helpers (per trip, per section) ----
+function ensureSectionComments(trip, sectionKey) {
+  if (!trip.sections) trip.sections = {};
+  if (!trip.sections[sectionKey]) trip.sections[sectionKey] = {};
+  if (!Array.isArray(trip.sections[sectionKey].comments)) {
+    trip.sections[sectionKey].comments = [];
+  }
+}
+
+export function listComments(tripId, sectionKey) {
+  const trip = getTrip(tripId);
+  if (!trip) return [];
+  ensureSectionComments(trip, sectionKey);
+  return trip.sections[sectionKey].comments;
+}
+
+export function addComment(
+  tripId,
+  sectionKey,
+  { userId, userName, avatarUrl, text }
+) {
+  const trip = getTrip(tripId);
+  if (!trip) return null;
+
+  ensureSectionComments(trip, sectionKey);
+
+  const body = String(text || "").trim();
+  if (!body) return null;
+
+  const comment = {
+    id: uid(),
+    userId: userId || "anon",
+    userName: userName || "Traveler",
+    avatarUrl: avatarUrl || "",
+    text: body,
+    createdAt: Date.now(),
+  };
+
+  trip.sections[sectionKey].comments.push(comment);
+  setTrip(trip);
+  return comment;
+}
+
+export function deleteComment(tripId, sectionKey, commentId) {
+  const trip = getTrip(tripId);
+  if (!trip) return false;
+
+  ensureSectionComments(trip, sectionKey);
+
+  const arr = trip.sections[sectionKey].comments;
+  const idx = arr.findIndex((c) => c.id === commentId);
+  if (idx === -1) return false;
+
+  arr.splice(idx, 1);
+  setTrip(trip);
+  return true;
 }

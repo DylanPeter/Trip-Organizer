@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import SectionComments from "../components/SectionComments";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useParams, Link } from "react-router-dom";
 import { getTrip, updateTripName } from "../utils/tripstore";
 
@@ -16,6 +18,10 @@ const BUILT_IN_SECTIONS = [
 
 export default function TripDetail() {
   const { id } = useParams();
+
+  // NEW: use the Auth0 user for comment author/avatars
+  const { user } = useAuth0();
+
   const [trip, setTrip] = useState(() => getTrip(id));
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState(trip?.name || "");
@@ -449,6 +455,9 @@ export default function TripDetail() {
                       onAdd={(newItem) => addItem(key, newItem)}
                       placeholder={`Add new ${formatLabel(key)} item`}
                     />
+
+                    {/* NEW: per-section comments that persist in localStorage */}
+                    <SectionComments tripId={id} sectionKey={key} user={user} />
                   </>
                 )}
               </div>
