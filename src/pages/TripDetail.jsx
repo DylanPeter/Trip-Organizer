@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import SectionComments from "../components/SectionComments";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useParams, Link } from "react-router-dom";
 import { getTrip, updateTripName } from "../utils/tripstore";
 
@@ -16,6 +18,10 @@ const BUILT_IN_SECTIONS = [
 
 export default function TripDetail() {
   const { id } = useParams();
+
+  // NEW: use the Auth0 user for comment author/avatars
+  const { user } = useAuth0();
+
   const [trip, setTrip] = useState(() => getTrip(id));
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState(trip?.name || "");
@@ -29,8 +35,8 @@ export default function TripDetail() {
     packList: ["Clothes", "Travel documents", "Electronics & chargers"],
   });
 
-  const [details, setDetails] = useState({});           // { sectionKey: [entry, entry, ...] }
-  const [showForm, setShowForm] = useState({});         // { sectionKey: false | "new" | index }
+  const [details, setDetails] = useState({});
+  const [showForm, setShowForm] = useState({});
   const [expandedSection, setExpandedSection] = useState({});
   const [expandedEntry, setExpandedEntry] = useState({});
 
@@ -49,7 +55,6 @@ export default function TripDetail() {
       const rawDetails = localStorage.getItem(detailsKey(id));
       if (rawDetails) {
         const parsed = JSON.parse(rawDetails);
-        // Ensure arrays for any older single-object storage
         const upgraded = Object.fromEntries(
           Object.entries(parsed).map(([k, v]) => [k, Array.isArray(v) ? v : [v]])
         );
@@ -187,7 +192,7 @@ export default function TripDetail() {
     document.title = `${t.name} • UsTinerary`;
   };
 
-  /* --- Formatting / Preview --- */
+  /* --- Formatting --- */
   const formatLabel = (str) =>
     str.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim();
 
@@ -326,143 +331,140 @@ export default function TripDetail() {
           const isCustom = !BUILT_IN_SECTIONS.includes(key);
           return (
             <div key={key} className="checklist-category">
-              <div className="category-header">
-                {renamingSection === key ? (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleRenameSection(key);
-                    }}
-                    className="rename-form"
-                  >
-                    <input
-                      value={renameValue}
-                      onChange={(e) => setRenameValue(e.target.value)}
-                      autoFocus
-                    />
-                    <button type="submit" className="cta-btn">Save</button>
-                    <button
-                      type="button"
-                      onClick={() => setRenamingSection(null)}
-                      className="nav-item"
-                    >
-                      Cancel
-                    </button>
-                  </form>
-                ) : (
-                  <>
-                    <h3>{formatLabel(key)}</h3>
-                    <div className="category-actions">
-                      <button onClick={() => toggleSection(key)}>
-                        {expandedSection[key] ? "Hide" : "Show"} Details
+              <div
+                className="category-header"
+                onClick={() => toggleSection(key)}
+              >
+                <h3>{formatLabel(key)}</h3>
+                <div className="category-actions">
+                  <span className="collapse-icon">
+                    {expandedSection[key] ? "▲" : "▼"}
+                  </span>
+                  {isCustom && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRenamingSection(key);
+                          setRenameValue(formatLabel(key));
+                        }}
+                        className="nav-item"
+                      >
+                        ✏️ Rename
                       </button>
-                      {isCustom && (
-                        <>
-                          <button
-                            onClick={() => {
-                              setRenamingSection(key);
-                              setRenameValue(formatLabel(key));
-                            }}
-                            className="nav-item"
-                          >
-                            ✏️ Rename
-                          </button>
-                          <button
-                            onClick={() => handleDeleteSection(key)}
-                            className="nav-item"
-                          >
-                            🗑 Delete
-                          </button>
-                        </>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteSection(key);
+                        }}
+                        className="nav-item"
+                      >
+                        🗑 Delete
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div
+                className={`section-content ${
+                  expandedSection[key] ? "expanded" : "collapsed"
+                }`}
+              >
+                {expandedSection[key] && (
+                  <>
+                    <div className="details-display">
+                      <h4>Details</h4>
+                      {details[key]?.length > 0 ? (
+                        details[key].map((entry, i) => (
+                          <div key={i} className="details-entry">
+                            <div className="details-preview">
+                              {getSectionPreview(entry, key)}
+                            </div>
+                            <div className="form-actions">
+                              <button
+                                className="nav-item"
+                                onClick={() => toggleEntry(key, i)}
+                              >
+                                {expandedEntry[key] === i
+                                  ? "Hide Details"
+                                  : "View Details"}
+                              </button>
+                              <button
+                                className="nav-item"
+                                onClick={() =>
+                                  setShowForm((p) => ({ ...p, [key]: i }))
+                                }
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="nav-item"
+                                onClick={() => handleDeleteDetails(key, i)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                            {expandedEntry[key] === i && renderFullDetails(entry)}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="details-preview">No details yet.</p>
                       )}
+                      <button
+                        onClick={() =>
+                          setShowForm((p) => ({ ...p, [key]: "new" }))
+                        }
+                        className="add-btn"
+                      >
+                        + Add Another
+                      </button>
                     </div>
+
+                    {showForm[key] !== false && (
+                      <DetailsForm
+                        sectionKey={key}
+                        existing={
+                          showForm[key] === "new"
+                            ? null
+                            : details[key]?.[showForm[key]] || null
+                        }
+                        onSave={(section, formData) =>
+                          handleAddDetails(
+                            section,
+                            formData,
+                            showForm[key] === "new" ? null : showForm[key]
+                          )
+                        }
+                        onCancel={() =>
+                          setShowForm((prev) => ({ ...prev, [key]: false }))
+                        }
+                      />
+                    )}
+
+                    <ul className="checklist-items">
+                      {items.map((item, i) => (
+                        <li key={i}>
+                          <input type="checkbox" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <AddItemForm
+                      onAdd={(newItem) => addItem(key, newItem)}
+                      placeholder={`Add new ${formatLabel(key)} item`}
+                    />
+
+                    {/* NEW: per-section comments that persist in localStorage */}
+                    <SectionComments tripId={id} sectionKey={key} user={user} />
                   </>
                 )}
               </div>
-
-              {expandedSection[key] && (
-                <div className="details-display">
-                  <h4>Details</h4>
-                  {details[key]?.length > 0 ? (
-                    details[key].map((entry, i) => (
-                      <div key={i} className="details-entry">
-                        <div className="details-preview">
-                          {getSectionPreview(entry, key)}
-                        </div>
-                        <div className="form-actions">
-                          <button
-                            className="nav-item"
-                            onClick={() => toggleEntry(key, i)}
-                          >
-                            {expandedEntry[key] === i ? "Hide Details" : "View Details"}
-                          </button>
-                          <button
-                            className="nav-item"
-                            onClick={() => setShowForm((p) => ({ ...p, [key]: i }))}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="nav-item"
-                            onClick={() => handleDeleteDetails(key, i)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                        {expandedEntry[key] === i && renderFullDetails(entry)}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="details-preview">No details yet.</p>
-                  )}
-                  <button
-                    onClick={() => setShowForm((p) => ({ ...p, [key]: "new" }))}
-                    className="add-btn"
-                  >
-                    + Add Another
-                  </button>
-                </div>
-              )}
-
-              {showForm[key] !== false && (
-                <DetailsForm
-                  sectionKey={key}
-                  existing={
-                    showForm[key] === "new"
-                      ? null
-                      : details[key]?.[showForm[key]] || null
-                  }
-                  onSave={(section, formData) =>
-                    handleAddDetails(
-                      section,
-                      formData,
-                      showForm[key] === "new" ? null : showForm[key]
-                    )
-                  }
-                  onCancel={() =>
-                    setShowForm((prev) => ({ ...prev, [key]: false }))
-                  }
-                />
-              )}
-
-              <ul className="checklist-items">
-                {items.map((item, i) => (
-                  <li key={i}>
-                    <input type="checkbox" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <AddItemForm
-                onAdd={(newItem) => addItem(key, newItem)}
-                placeholder={`Add new ${formatLabel(key)} item`}
-              />
             </div>
           );
         })}
 
-        {/* Add new custom section */}
         <div className="add-section-area">
           {addingSection ? (
             <form onSubmit={handleAddSection} className="add-section-form">
@@ -499,7 +501,6 @@ export default function TripDetail() {
 
 /* === DetailsForm === */
 function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
-  // Self-contained label helper for this component
   const formatLabel = (str) =>
     str.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim();
 
@@ -544,7 +545,6 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
       case "packList":
         return { notes: "" };
       default:
-        // Custom sections default to notes-only
         return { notes: "" };
     }
   };
@@ -558,7 +558,6 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Validate date/time ordering for known pairs
     const pairs = [
       ["checkIn", "checkInTime", "checkOut", "checkOutTime"],
       ["departureDate", "departureTime", "arrivalDate", "arrivalTime"],
@@ -580,7 +579,6 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
     onSave(sectionKey, formData);
   };
 
-  // Group known date/time pairs for compact layout
   const pairedFields = {
     hotels: [
       ["checkIn", "checkInTime"],
@@ -606,10 +604,9 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
       <h4>{existing ? "Edit Details" : "Add Details"}</h4>
 
       {Object.keys(formData).map((f) => {
-        if (f === "notes") return null; // render at the end
-        if (isPairedTimeField(f)) return null; // will render with its date partner
+        if (f === "notes") return null;
+        if (isPairedTimeField(f)) return null;
 
-        // If this field is a date partner in a known pair, render date+time side-by-side
         for (const group of pairedFields[sectionKey] || []) {
           if (group[0] === f) {
             const [dateKey, timeKey] = group;
@@ -633,7 +630,6 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
           }
         }
 
-        // Otherwise, render a standard input
         return (
           <div key={f} className="form-row">
             <label>{formatLabel(f)}:</label>
@@ -652,7 +648,6 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
         );
       })}
 
-      {/* Notes textarea */}
       <div className="form-row">
         <label>Notes:</label>
         <textarea
@@ -673,7 +668,7 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
   );
 }
 
-/* === AddItem Form === */
+/* === AddItemForm === */
 function AddItemForm({ onAdd, placeholder }) {
   const [value, setValue] = useState("");
   const handleSubmit = (e) => {
