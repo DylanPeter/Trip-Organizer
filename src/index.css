@@ -291,7 +291,6 @@ h1, h2, h3 {
 }
 
 .checklist-category {
-  margin-bottom: 2.5rem;
   padding: 1.25rem 1.5rem;
   background-color: white;
   border: 1px solid #e2dfe9;
@@ -615,7 +614,7 @@ h1, h2, h3 {
   background-color: #fff;
   border: 1px solid var(--color-border, #e5e3ec);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: .75rem;
   box-shadow: var(--shadow-md, 0 4px 10px rgba(0, 0, 0, 0.08));
   transition: box-shadow 0.2s ease, transform 0.1s ease;
 }
@@ -890,3 +889,56 @@ h1, h2, h3 {
   font-size: 0.9;
 }
 
+.category-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem; /* visual size stays the same */
+  user-select: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  z-index: 0; /* ensure the pseudo-element sits behind content */
+}
+
+
+/* Invisible clickable overlay */
+.category-header::before {
+  content: "";
+  position: absolute;
+  inset: -6px -8px; /* ← expand the clickable region outward */
+  z-index: -1;
+}
+
+/* Ensure child buttons don't accidentally trigger toggle */
+.category-header button {
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.header-title {
+  font-size: 1.05rem;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collapse-icon {
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+.category-header::before {
+  inset: -20px -50px;
+}
