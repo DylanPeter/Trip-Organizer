@@ -6,6 +6,7 @@ import { getTrip, updateTripName } from "../utils/tripstore";
 
 const sectionsKey = (tripId) => `trip.${tripId}.sections.v1`;
 const detailsKey = (tripId) => `trip.${tripId}.details.v16`;
+const budgetKey = (tripId) => `trip.${tripId}.budget.v1`;
 
 const BUILT_IN_SECTIONS = [
   "hotels",
@@ -18,8 +19,6 @@ const BUILT_IN_SECTIONS = [
 
 export default function TripDetail() {
   const { id } = useParams();
-
-  // NEW: use the Auth0 user for comment author/avatars
   const { user } = useAuth0();
 
   const [trip, setTrip] = useState(() => getTrip(id));
@@ -40,11 +39,18 @@ export default function TripDetail() {
   const [expandedSection, setExpandedSection] = useState({});
   const [expandedEntry, setExpandedEntry] = useState({});
 
-  // Custom section management
+  // Section management
   const [addingSection, setAddingSection] = useState(false);
   const [newSectionName, setNewSectionName] = useState("");
   const [renamingSection, setRenamingSection] = useState(null);
   const [renameValue, setRenameValue] = useState("");
+
+  // Budget management
+  const [totalBudget, setTotalBudget] = useState(0);
+  const [sectionBudgets, setSectionBudgets] = useState({});
+
+  // Tab management
+  const [activeTab, setActiveTab] = useState("checklist");
 
   /* --- Load / Save --- */
   useEffect(() => {
@@ -52,6 +58,7 @@ export default function TripDetail() {
     try {
       const rawSections = localStorage.getItem(sectionsKey(id));
       if (rawSections) setSections(JSON.parse(rawSections));
+
       const rawDetails = localStorage.getItem(detailsKey(id));
       if (rawDetails) {
         const parsed = JSON.parse(rawDetails);
@@ -59,6 +66,13 @@ export default function TripDetail() {
           Object.entries(parsed).map(([k, v]) => [k, Array.isArray(v) ? v : [v]])
         );
         setDetails(upgraded);
+      }
+
+      const rawBudget = localStorage.getItem(budgetKey(id));
+      if (rawBudget) {
+        const parsed = JSON.parse(rawBudget);
+        setTotalBudget(parsed.total || 0);
+        setSectionBudgets(parsed.sections || {});
       }
     } catch {}
   }, [id]);
@@ -68,8 +82,12 @@ export default function TripDetail() {
     try {
       localStorage.setItem(sectionsKey(id), JSON.stringify(sections));
       localStorage.setItem(detailsKey(id), JSON.stringify(details));
+      localStorage.setItem(
+        budgetKey(id),
+        JSON.stringify({ total: totalBudget, sections: sectionBudgets })
+      );
     } catch {}
-  }, [id, sections, details]);
+  }, [id, sections, details, totalBudget, sectionBudgets]);
 
   useEffect(() => {
     const t = getTrip(id);
@@ -77,13 +95,30 @@ export default function TripDetail() {
     setNameInput(t?.name || "");
   }, [id]);
 
-  /* --- Core Handlers --- */
+  /* --- Section Handlers --- */
   const addItem = (sectionKey, item) => {
     if (!item.trim()) return;
     setSections((prev) => ({
       ...prev,
       [sectionKey]: [...(prev[sectionKey] || []), item],
     }));
+  };
+
+  const handleAddSection = (e) => {
+    e.preventDefault();
+    const name = newSectionName.trim();
+    if (!name) return;
+    const key = name
+      .replace(/\s+/g, "")
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .replace(/^./, (c) => c.toLowerCase());
+    if (sections[key]) {
+      alert("A section with that name already exists.");
+      return;
+    }
+    setSections((prev) => ({ ...prev, [key]: [] }));
+    setNewSectionName("");
+    setAddingSection(false);
   };
 
   const handleAddDetails = (sectionKey, formData, index = null) => {
@@ -105,33 +140,6 @@ export default function TripDetail() {
       ...prev,
       [sectionKey]: prev[sectionKey].filter((_, i) => i !== index),
     }));
-  };
-
-  const toggleSection = (key) =>
-    setExpandedSection((p) => ({ ...p, [key]: !p[key] }));
-
-  const toggleEntry = (sectionKey, i) =>
-    setExpandedEntry((p) => ({
-      ...p,
-      [sectionKey]: p[sectionKey] === i ? null : i,
-    }));
-
-  /* --- Add / Rename / Delete Sections --- */
-  const handleAddSection = (e) => {
-    e.preventDefault();
-    const name = newSectionName.trim();
-    if (!name) return;
-    const key = name
-      .replace(/\s+/g, "")
-      .replace(/[^a-zA-Z0-9]/g, "")
-      .replace(/^./, (c) => c.toLowerCase());
-    if (sections[key]) {
-      alert("A section with that name already exists.");
-      return;
-    }
-    setSections((prev) => ({ ...prev, [key]: [] }));
-    setNewSectionName("");
-    setAddingSection(false);
   };
 
   const handleRenameSection = (key) => {
@@ -158,6 +166,14 @@ export default function TripDetail() {
       }
       return copy;
     });
+    setSectionBudgets((prev) => {
+      const copy = { ...prev };
+      if (copy[key] !== undefined) {
+        copy[newKey] = copy[key];
+        delete copy[key];
+      }
+      return copy;
+    });
     setRenamingSection(null);
     setRenameValue("");
   };
@@ -170,6 +186,11 @@ export default function TripDetail() {
         return copy;
       });
       setDetails((prev) => {
+        const copy = { ...prev };
+        delete copy[key];
+        return copy;
+      });
+      setSectionBudgets((prev) => {
         const copy = { ...prev };
         delete copy[key];
         return copy;
@@ -192,7 +213,7 @@ export default function TripDetail() {
     document.title = `${t.name} • UsTinerary`;
   };
 
-  /* --- Formatting --- */
+  /* --- Helpers --- */
   const formatLabel = (str) =>
     str.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim();
 
@@ -220,72 +241,20 @@ export default function TripDetail() {
     }
   };
 
-  const getSectionPreview = (entry, key) => {
-    const d = entry;
-    switch (key) {
-      case "hotels":
-        return d.hotelName
-          ? `${d.hotelName}${d.location ? `, ${d.location}` : ""}${
-              d.checkIn || d.checkOut
-                ? ` • ${formatDateTime(d.checkIn, d.checkInTime)}${
-                    d.checkOut || d.checkOutTime
-                      ? " – " + formatDateTime(d.checkOut, d.checkOutTime)
-                      : ""
-                  }`
-                : ""
-            }`
-          : null;
-      case "airTravel":
-        return d.airline
-          ? `${d.airline} ${d.flightNumber || ""}${
-              d.departureDate || d.arrivalDate
-                ? ` • ${formatDateTime(d.departureDate, d.departureTime)}${
-                    d.arrivalDate || d.arrivalTime
-                      ? " → " + formatDateTime(d.arrivalDate, d.arrivalTime)
-                      : ""
-                  }`
-                : ""
-            }`
-          : null;
-      case "groundTransit":
-        return d.provider
-          ? `${d.provider}${d.type ? ` (${d.type})` : ""}${
-              d.pickupDate || d.pickupTime
-                ? ` • ${formatDateTime(d.pickupDate, d.pickupTime)}${
-                    d.dropoffDate || d.dropoffTime
-                      ? " → " + formatDateTime(d.dropoffDate, d.dropoffTime)
-                      : ""
-                  }`
-                : ""
-            }`
-          : null;
-      default: {
-        const filtered = Object.entries(d)
-          .filter(([k, v]) => k !== "notes" && v)
-          .map(([, v]) => v);
-        return filtered.length ? filtered.join(" • ") : null;
-      }
-    }
-  };
-
-  const renderFullDetails = (entry) => (
-    <div className="details-card">
-      {Object.entries(entry).map(([label, value]) =>
-        value && label !== "notes" ? (
-          <div key={label} className="details-row">
-            <span className="details-label">{formatLabel(label)}:</span>
-            <span className="details-value">{value}</span>
-          </div>
-        ) : null
-      )}
-      {entry.notes && (
-        <div className="details-row notes-row">
-          <span className="details-label">Notes:</span>
-          <span className="details-value">{entry.notes}</span>
-        </div>
-      )}
-    </div>
+  const totalAllocated = Object.values(sectionBudgets).reduce(
+    (a, b) => a + (b || 0),
+    0
   );
+  const remainingBudget = totalBudget - totalAllocated;
+
+  const toggleSection = (key) =>
+    setExpandedSection((p) => ({ ...p, [key]: !p[key] }));
+
+  const toggleEntry = (sectionKey, i) =>
+    setExpandedEntry((p) => ({
+      ...p,
+      [sectionKey]: p[sectionKey] === i ? null : i,
+    }));
 
   if (!trip)
     return (
@@ -324,178 +293,330 @@ export default function TripDetail() {
         </p>
       </header>
 
-      <section className="checklist-section">
-        <h2>Travel Planning Checklist</h2>
+      {/* Tabs */}
+      <div className="tab-switcher">
+        <button
+          className={activeTab === "checklist" ? "active" : ""}
+          onClick={() => setActiveTab("checklist")}
+        >
+          Checklist
+        </button>
+        <button
+          className={activeTab === "budget" ? "active" : ""}
+          onClick={() => setActiveTab("budget")}
+        >
+          Budget
+        </button>
+      </div>
 
-        {Object.entries(sections).map(([key, items]) => {
-          const isCustom = !BUILT_IN_SECTIONS.includes(key);
-          return (
-            <div key={key} className="checklist-category">
-              <div
-                className="category-header"
-                onClick={() => toggleSection(key)}
-              >
-                <h3>{formatLabel(key)}</h3>
-                <div className="category-actions">
-                  <span className="collapse-icon">
-                    {expandedSection[key] ? "▲" : "▼"}
-                  </span>
-                  {isCustom && (
+      {activeTab === "checklist" ? (
+        <section className="checklist-section">
+          <h2>Travel Planning Checklist</h2>
+
+          {Object.entries(sections).map(([key, items]) => {
+            const isCustom = !BUILT_IN_SECTIONS.includes(key);
+            return (
+              <div key={key} className="checklist-category">
+                <div
+                  className="category-header"
+                  onClick={() => toggleSection(key)}
+                >
+                  <h3>{formatLabel(key)}</h3>
+                  <div className="category-actions">
+                    <span className="collapse-icon">
+                      {expandedSection[key] ? "▲" : "▼"}
+                    </span>
+                    {isCustom && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenamingSection(key);
+                            setRenameValue(formatLabel(key));
+                          }}
+                          className="nav-item"
+                        >
+                          ✏️ Rename
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSection(key);
+                          }}
+                          className="nav-item"
+                        >
+                          🗑 Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div
+                  className={`section-content ${
+                    expandedSection[key] ? "expanded" : "collapsed"
+                  }`}
+                >
+                  {expandedSection[key] && (
                     <>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setRenamingSection(key);
-                          setRenameValue(formatLabel(key));
-                        }}
-                        className="nav-item"
-                      >
-                        ✏️ Rename
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteSection(key);
-                        }}
-                        className="nav-item"
-                      >
-                        🗑 Delete
-                      </button>
+                      <div className="details-display">
+                        <h4>Details</h4>
+                        {details[key]?.length > 0 ? (
+                          details[key].map((entry, i) => (
+                            <div key={i} className="details-entry">
+                              <div className="details-preview">
+                                {Object.entries(entry)
+                                  .filter(([k, v]) => k !== "notes" && k !== "pollingEnabled" && v)
+                                  .map(([, v]) => v)
+                                  .join(" • ")}
+                              </div>
+                              <div className="form-actions">
+                                <button
+                                  className="nav-item"
+                                  onClick={() => toggleEntry(key, i)}
+                                >
+                                  {expandedEntry[key] === i
+                                    ? "Hide Details"
+                                    : "View Details"}
+                                </button>
+                                <button
+                                  className="nav-item"
+                                  onClick={() =>
+                                    setShowForm((p) => ({ ...p, [key]: i }))
+                                  }
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="nav-item"
+                                  onClick={() =>
+                                    handleDeleteDetails(key, i)
+                                  }
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                              {expandedEntry[key] === i && (
+                                <>
+                                  {renderFullDetails(entry, formatLabel)}
+                                  {entry.pollingEnabled && (
+                                    <PollBox
+                                      tripId={id}
+                                      sectionKey={key}
+                                      entryIndex={i}
+                                      user={user}
+                                    />
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="details-preview">No details yet.</p>
+                        )}
+                        <button
+                          onClick={() =>
+                            setShowForm((p) => ({ ...p, [key]: "new" }))
+                          }
+                          className="add-btn"
+                        >
+                          + Add Another
+                        </button>
+                      </div>
+
+                      {showForm[key] !== false && (
+                        <DetailsForm
+                          sectionKey={key}
+                          existing={
+                            showForm[key] === "new"
+                              ? null
+                              : details[key]?.[showForm[key]] || null
+                          }
+                          onSave={(section, formData) =>
+                            handleAddDetails(
+                              section,
+                              formData,
+                              showForm[key] === "new" ? null : showForm[key]
+                            )
+                          }
+                          onCancel={() =>
+                            setShowForm((prev) => ({ ...prev, [key]: false }))
+                          }
+                        />
+                      )}
+
+                      <ul className="checklist-items">
+                        {items.map((item, i) => (
+                          <li key={i}>
+                            <input type="checkbox" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <AddItemForm
+                        onAdd={(newItem) => addItem(key, newItem)}
+                        placeholder={`Add new ${formatLabel(key)} item`}
+                      />
+
+                      {/* per-section comments */}
+                      <SectionComments tripId={id} sectionKey={key} user={user} />
                     </>
                   )}
                 </div>
               </div>
+            );
+          })}
 
-              <div
-                className={`section-content ${
-                  expandedSection[key] ? "expanded" : "collapsed"
-                }`}
-              >
-                {expandedSection[key] && (
-                  <>
-                    <div className="details-display">
-                      <h4>Details</h4>
-                      {details[key]?.length > 0 ? (
-                        details[key].map((entry, i) => (
-                          <div key={i} className="details-entry">
-                            <div className="details-preview">
-                              {getSectionPreview(entry, key)}
-                            </div>
-                            <div className="form-actions">
-                              <button
-                                className="nav-item"
-                                onClick={() => toggleEntry(key, i)}
-                              >
-                                {expandedEntry[key] === i
-                                  ? "Hide Details"
-                                  : "View Details"}
-                              </button>
-                              <button
-                                className="nav-item"
-                                onClick={() =>
-                                  setShowForm((p) => ({ ...p, [key]: i }))
-                                }
-                              >
-                                Edit
-                              </button>
-                              <button
-                                className="nav-item"
-                                onClick={() => handleDeleteDetails(key, i)}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                            {expandedEntry[key] === i && renderFullDetails(entry)}
-                          </div>
-                        ))
-                      ) : (
-                        <p className="details-preview">No details yet.</p>
-                      )}
-                      <button
-                        onClick={() =>
-                          setShowForm((p) => ({ ...p, [key]: "new" }))
-                        }
-                        className="add-btn"
-                      >
-                        + Add Another
-                      </button>
-                    </div>
-
-                    {showForm[key] !== false && (
-                      <DetailsForm
-                        sectionKey={key}
-                        existing={
-                          showForm[key] === "new"
-                            ? null
-                            : details[key]?.[showForm[key]] || null
-                        }
-                        onSave={(section, formData) =>
-                          handleAddDetails(
-                            section,
-                            formData,
-                            showForm[key] === "new" ? null : showForm[key]
-                          )
-                        }
-                        onCancel={() =>
-                          setShowForm((prev) => ({ ...prev, [key]: false }))
-                        }
-                      />
-                    )}
-
-                    <ul className="checklist-items">
-                      {items.map((item, i) => (
-                        <li key={i}>
-                          <input type="checkbox" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <AddItemForm
-                      onAdd={(newItem) => addItem(key, newItem)}
-                      placeholder={`Add new ${formatLabel(key)} item`}
-                    />
-
-                    {/* NEW: per-section comments that persist in localStorage */}
-                    <SectionComments tripId={id} sectionKey={key} user={user} />
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
-
-        <div className="add-section-area">
-          {addingSection ? (
-            <form onSubmit={handleAddSection} className="add-section-form">
-              <input
-                type="text"
-                value={newSectionName}
-                onChange={(e) => setNewSectionName(e.target.value)}
-                placeholder="Enter new section name"
-                autoFocus
-              />
-              <button type="submit" className="cta-btn">Add</button>
-              <button
-                type="button"
-                onClick={() => setAddingSection(false)}
-                className="nav-item"
-              >
-                Cancel
+          <div className="add-section-area">
+            {addingSection ? (
+              <form onSubmit={handleAddSection} className="add-section-form">
+                <input
+                  type="text"
+                  value={newSectionName}
+                  onChange={(e) => setNewSectionName(e.target.value)}
+                  placeholder="Enter new section name"
+                  autoFocus
+                />
+                <button type="submit" className="cta-btn">Add</button>
+                <button
+                  type="button"
+                  onClick={() => setAddingSection(false)}
+                  className="nav-item"
+                >
+                  Cancel
+                </button>
+              </form>
+            ) : (
+              <button onClick={() => setAddingSection(true)} className="add-btn">
+                + Add Section
               </button>
-            </form>
-          ) : (
-            <button onClick={() => setAddingSection(true)} className="add-btn">
-              + Add Section
-            </button>
-          )}
-        </div>
-      </section>
+            )}
+          </div>
+        </section>
+      ) : (
+        <BudgetSummary
+          {...{
+            totalBudget,
+            setTotalBudget,
+            sectionBudgets,
+            setSectionBudgets,
+            sections,
+            totalAllocated,
+            remainingBudget,
+            formatLabel,
+          }}
+        />
+      )}
 
       <footer>
         <Link to="/trips" className="back-to-trips">← Back to all trips</Link>
       </footer>
     </main>
+  );
+}
+
+function renderFullDetails(entry, formatLabel) {
+  return (
+    <div className="details-card">
+      {Object.entries(entry).map(([label, value]) =>
+        value && label !== "notes" && label !== "pollingEnabled" ? (
+          <div key={label} className="details-row">
+            <span className="details-label">{formatLabel(label)}:</span>
+            <span className="details-value">{value}</span>
+          </div>
+        ) : null
+      )}
+      {entry.notes && (
+        <div className="details-row notes-row">
+          <span className="details-label">Notes:</span>
+          <span className="details-value">{entry.notes}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* === BudgetSummary === */
+function BudgetSummary({
+  totalBudget,
+  setTotalBudget,
+  sectionBudgets,
+  setSectionBudgets,
+  sections,
+  totalAllocated,
+  remainingBudget,
+  formatLabel,
+}) {
+  return (
+    <section className="budget-summary">
+      <h2>Trip Budget</h2>
+      <div className="budget-total">
+        <label>Total Budget:</label>
+        <input
+          type="number"
+          value={totalBudget}
+          onChange={(e) => setTotalBudget(Number(e.target.value) || 0)}
+          placeholder="Enter total budget"
+        />
+      </div>
+
+      <table className="budget-table">
+        <thead>
+          <tr>
+            <th>Section</th>
+            <th>Budget</th>
+            <th>% of Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.keys(sections).map((key) => (
+            <tr key={key}>
+              <td>{formatLabel(key)}</td>
+              <td>
+                <input
+                  type="number"
+                  value={sectionBudgets[key] || ""}
+                  onChange={(e) =>
+                    setSectionBudgets((prev) => ({
+                      ...prev,
+                      [key]: Number(e.target.value) || 0,
+                    }))
+                  }
+                  placeholder="0"
+                />
+                <div className="budget-progress">
+                  <div
+                    className="budget-progress-fill"
+                    style={{
+                      width: totalBudget
+                        ? `${Math.min(
+                            ((sectionBudgets[key] || 0) / totalBudget) * 100,
+                            100
+                          )}%`
+                        : "0%",
+                    }}
+                  />
+                </div>
+              </td>
+              <td>
+                {totalBudget
+                  ? (((sectionBudgets[key] || 0) / totalBudget) * 100).toFixed(1) +
+                    "%"
+                  : "—"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <p>
+        <strong>Total allocated:</strong> ${totalAllocated} / ${totalBudget || 0}
+      </p>
+      <p>
+        <strong>Remaining:</strong> ${remainingBudget}
+      </p>
+    </section>
   );
 }
 
@@ -515,6 +636,7 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
           checkOut: "",
           checkOutTime: "",
           notes: "",
+          pollingEnabled: false,
         };
       case "airTravel":
         return {
@@ -525,6 +647,7 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
           arrivalDate: "",
           arrivalTime: "",
           notes: "",
+          pollingEnabled: false,
         };
       case "groundTransit":
         return {
@@ -537,15 +660,16 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
           dropoffDate: "",
           dropoffTime: "",
           notes: "",
+          pollingEnabled: false,
         };
       case "attractions":
-        return { attractionName: "", location: "", date: "", notes: "" };
+        return { attractionName: "", location: "", date: "", notes: "", pollingEnabled: false };
       case "foodDining":
-        return { restaurantName: "", location: "", reservationTime: "", notes: "" };
+        return { restaurantName: "", location: "", reservationTime: "", notes: "", pollingEnabled: false };
       case "packList":
-        return { notes: "" };
+        return { notes: "", pollingEnabled: false };
       default:
-        return { notes: "" };
+        return { notes: "", pollingEnabled: false };
     }
   };
 
@@ -579,6 +703,7 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
     onSave(sectionKey, formData);
   };
 
+  // groups date+time pairs for layout
   const pairedFields = {
     hotels: [
       ["checkIn", "checkInTime"],
@@ -604,7 +729,7 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
       <h4>{existing ? "Edit Details" : "Add Details"}</h4>
 
       {Object.keys(formData).map((f) => {
-        if (f === "notes") return null;
+        if (f === "notes" || f === "pollingEnabled") return null;
         if (isPairedTimeField(f)) return null;
 
         for (const group of pairedFields[sectionKey] || []) {
@@ -619,10 +744,9 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
                     value={formData[dateKey]}
                     onChange={(e) => handleChange(dateKey, e.target.value)}
                   />
-                  <input
-                    type="time"
+                  <TimePicker
                     value={formData[timeKey]}
-                    onChange={(e) => handleChange(timeKey, e.target.value)}
+                    onChange={(val) => handleChange(timeKey, val)}
                   />
                 </div>
               </div>
@@ -647,6 +771,17 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
           </div>
         );
       })}
+
+      <div className="form-row toggle-row">
+        <label>
+          <input
+            type="checkbox"
+            checked={formData.pollingEnabled || false}
+            onChange={(e) => handleChange("pollingEnabled", e.target.checked)}
+          />{" "}
+          Enable Polling for this Item
+        </label>
+      </div>
 
       <div className="form-row">
         <label>Notes:</label>
@@ -687,5 +822,124 @@ function AddItemForm({ onAdd, placeholder }) {
       />
       <button type="submit" className="add-btn">Add</button>
     </form>
+  );
+}
+
+/* === TimePicker === */
+function TimePicker({ value, onChange }) {
+  const parseTime = (t) => {
+    if (!t) return { h: "", m: "", period: "AM" };
+    const [hRaw, mRaw] = t.split(":");
+    let h = parseInt(hRaw, 10);
+    const m = mRaw ? mRaw.slice(0, 2) : "00";
+    const period = h >= 12 ? "PM" : "AM";
+    if (h > 12) h -= 12;
+    if (h === 0) h = 12;
+    return { h: h.toString().padStart(2, "0"), m, period };
+  };
+
+  const [time, setTime] = useState(parseTime(value));
+
+  useEffect(() => {
+    const h = parseInt(time.h || 0, 10);
+    const m = time.m || "00";
+    const adjustedH =
+      time.period === "PM" && h < 12
+        ? h + 12
+        : time.period === "AM" && h === 12
+        ? 0
+        : h;
+    const formatted = `${adjustedH.toString().padStart(2, "0")}:${m}`;
+    onChange(formatted);
+  }, [time]);
+
+  const hours = Array.from({ length: 12 }, (_, i) =>
+    (i + 1).toString().padStart(2, "0")
+  );
+  const minutes = Array.from({ length: 60 }, (_, i) =>
+    i.toString().padStart(2, "0")
+  );
+
+  return (
+    <div className="time-picker">
+      <select
+        value={time.h}
+        onChange={(e) => setTime((t) => ({ ...t, h: e.target.value }))}
+      >
+        <option value="">HH</option>
+        {hours.map((h) => (
+          <option key={h} value={h}>
+            {h}
+          </option>
+        ))}
+      </select>
+      <span className="time-separator">:</span>
+      <select
+        value={time.m}
+        onChange={(e) => setTime((t) => ({ ...t, m: e.target.value }))}
+      >
+        <option value="">MM</option>
+        {minutes.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
+      <select
+        value={time.period}
+        onChange={(e) => setTime((t) => ({ ...t, period: e.target.value }))}
+      >
+        <option value="AM">AM</option>
+        <option value="PM">PM</option>
+      </select>
+    </div>
+  );
+}
+
+/* === PollBox === */
+function PollBox({ tripId, sectionKey, entryIndex, user }) {
+  const userId = user?.sub || "guest";
+  const pollKey = `trip.${tripId}.polls.${sectionKey}.${entryIndex}`;
+  const [votes, setVotes] = useState(() => {
+    try {
+      const saved = localStorage.getItem(pollKey);
+      return saved ? JSON.parse(saved) : { up: 0, down: 0, voters: {} };
+    } catch {
+      return { up: 0, down: 0, voters: {} };
+    }
+  });
+
+  const handleVote = (type) => {
+    if (votes.voters[userId]) {
+      alert("You've already voted on this item.");
+      return;
+    }
+    const updated = {
+      ...votes,
+      [type]: (votes[type] || 0) + 1,
+      voters: { ...votes.voters, [userId]: type },
+    };
+    setVotes(updated);
+    try {
+      localStorage.setItem(pollKey, JSON.stringify(updated));
+    } catch {}
+  };
+
+  const total = (votes.up || 0) + (votes.down || 0);
+  const upPercent = total ? Math.round(((votes.up || 0) / total) * 100) : 0;
+  const downPercent = total ? Math.round(((votes.down || 0) / total) * 100) : 0;
+
+  return (
+    <div className="poll-box">
+      <h5>Poll this item</h5>
+      <div className="poll-controls">
+        <button onClick={() => handleVote("up")} className="poll-btn up">
+          👍 {votes.up} ({upPercent}%)
+        </button>
+        <button onClick={() => handleVote("down")} className="poll-btn down">
+          👎 {votes.down} ({downPercent}%)
+        </button>
+      </div>
+    </div>
   );
 }
