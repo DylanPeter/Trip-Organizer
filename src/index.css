@@ -5,7 +5,7 @@
   --color-secondary: #E6AA9A;
   --color-accent-1: #173859;
   --color-accent-2: #759ABC;
-  --color-background: #DBD6DB;
+  --color-background: #F7F7F7;
   --color-text: #130F1A;
 
   --font-primary: "Open Sans", sans-serif;
@@ -291,7 +291,6 @@ h1, h2, h3 {
 }
 
 .checklist-category {
-  margin-bottom: 2.5rem;
   padding: 1.25rem 1.5rem;
   background-color: white;
   border: 1px solid #e2dfe9;
@@ -615,15 +614,11 @@ h1, h2, h3 {
   background-color: #fff;
   border: 1px solid var(--color-border, #e5e3ec);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: .75rem;
   box-shadow: var(--shadow-md, 0 4px 10px rgba(0, 0, 0, 0.08));
   transition: box-shadow 0.2s ease, transform 0.1s ease;
 }
 
-.checklist-category:hover {
-  box-shadow: var(--shadow-lg, 0 6px 14px rgba(0, 0, 0, 0.1));
-  transform: translateY(-2px);
-}
 
 .category-header {
   display: flex;
@@ -890,3 +885,259 @@ h1, h2, h3 {
   font-size: 0.9;
 }
 
+.category-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem; /* visual size stays the same */
+  user-select: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  z-index: 0; /* ensure the pseudo-element sits behind content */
+}
+
+
+/* Invisible clickable overlay */
+.category-header::before {
+  content: "";
+  position: absolute;
+  inset: -6px -8px; /* ← expand the clickable region outward */
+  z-index: -1;
+}
+
+/* Ensure child buttons don't accidentally trigger toggle */
+.category-header button {
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.header-title {
+  font-size: 1.05rem;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collapse-icon {
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+.category-header::before {
+  inset: -20px -50px;
+}
+
+/* === Unified Date + Time Input Group (aligned) === */
+.details-form .paired-inputs {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.details-form .pair-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-accent-2) 60%, transparent);
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  height: 40px; /* unify height across both controls */
+}
+
+.details-form .pair-group:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+/* === Date Picker === */
+.details-form .pair-group input[type="date"] {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 0.75rem 0 2rem; /* space for icon */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid color-mix(in srgb, var(--color-accent-2) 40%, transparent);
+  line-height: 1;
+}
+
+.details-form .pair-group input[type="date"]:focus {
+  outline: none;
+}
+
+/* === Time Picker Group === */
+.time-picker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 0.5rem 0 2rem; /* match date padding */
+  position: relative;
+  gap: 0.25rem;
+}
+
+.time-picker select {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  height: 100%;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+
+.time-picker .time-separator {
+  font-weight: 600;
+  color: var(--color-accent-1);
+  margin: 0 0.1rem;
+  user-select: none;
+}
+
+/* === Mobile adjustments === */
+@media (max-width: 600px) {
+  .details-form .pair-group {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .details-form .pair-group input[type="date"] {
+    border-right: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-accent-2) 40%, transparent);
+    padding: 0.5rem 0.75rem 0.5rem 2rem;
+  }
+
+  .time-picker {
+    padding: 0.4rem 0.75rem 0.4rem 2rem;
+    justify-content: flex-start;
+  }
+}
+
+.poll-box {
+  border: 1px solid color-mix(in srgb, var(--color-accent-2) 40%, transparent);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--color-background) 80%, white);
+  margin-top: 0.5rem;
+}
+
+.poll-box h5 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-accent-1);
+  font-family: var(--font-header);
+  font-size: 1rem;
+}
+
+.poll-controls {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.poll-btn {
+  border: 1px solid var(--color-accent-2);
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.poll-btn.up:hover {
+  background: color-mix(in srgb, var(--color-primary) 20%, white);
+}
+
+.poll-btn.down:hover {
+  background: color-mix(in srgb, var(--color-secondary) 25%, white);
+}
+
+.poll-user {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+/* === Polling Toggle Row === */
+.details-form .toggle-row {
+  display: flex;
+  align-items: center;
+  margin: 0.75rem 0;
+  padding: 0.4rem 0.2rem;
+}
+
+.details-form .toggle-row label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+/* Clean, modern checkbox */
+.details-form .toggle-row input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-accent-2);
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+/* Hover highlight */
+.details-form .toggle-row input[type="checkbox"]:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, white);
+}
+
+/* Checked state */
+.details-form .toggle-row input[type="checkbox"]:checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Checkmark */
+.details-form .toggle-row input[type="checkbox"]:checked::after {
+  content: "✔";
+  position: absolute;
+  top: -2px;
+  left: 3px;
+  font-size: 14px;
+  color: white;
+  font-weight: bold;
+}
+
+/* Mobile friendly */
+@media (max-width: 600px) {
+  .details-form .toggle-row {
+    margin: 1rem 0;
+  }
+}
