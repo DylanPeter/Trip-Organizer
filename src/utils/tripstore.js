@@ -1,3 +1,5 @@
+import { fetchLandmarkPhoto, DEFAULT_TRIP_PHOTO } from "./photoService";
+
 // ---- Single storage key ----
 const TRIPS_KEY = "trips.v1";
 
@@ -31,8 +33,14 @@ function uid() {
 }
 
 // ---- Trips API ----
-export function createTrip(partial = {}) {
+export async function createTrip(partial = {}) {
   const trips = loadTrips();
+
+  const photoData = await fetchLandmarkPhoto(
+    partial.city || partial.location || "",
+    partial.country || ""
+  );
+
   const trip = {
     id: uid(),
     name: partial.name || "Untitled Trip",
@@ -43,11 +51,21 @@ export function createTrip(partial = {}) {
     country: partial.country || "",
     dateStart: partial.dateStart || "",
     dateEnd: partial.dateEnd || "",
+    photoUrl: photoData?.url || DEFAULT_TRIP_PHOTO,
+    photoAttribution: photoData
+    ? {
+        photographer: photoData.photographer,
+        photoLink: photoData.photoLink
+      }
+    : null,
+    useDefaultPhoto: false,
     createdAt: new Date().toISOString(),
     ...partial, // allow additional fields to be set by caller
   };
+  
   trips.push(trip);
   saveTrips(trips);
+
   return trip.id;
 }
 
@@ -73,6 +91,16 @@ export function renameTrip(id, name) {
 export function updateTripName(id, name) {
   renameTrip(id, name);
 }
+
+export function updateTrip(trip) {
+  const trips = loadTrips();
+  const idx = trips.findIndex((t) => t.id === trip.id);
+  if (idx !== -1) {
+    trips[idx] = trip;
+    saveTrips(trips);
+  }
+}
+
 
 // Upsert a full trip object (used by comments helpers)
 function setTrip(updated) {
