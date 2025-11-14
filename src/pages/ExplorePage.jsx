@@ -90,8 +90,12 @@ export default function ExplorePage() {
         <div style={{ height: "400px", marginBottom: "1rem" }}>
           <MapContainer center={[lat, lon]} zoom={13} style={{ height: "100%", width: "100%" }}>
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://www.geoapify.com/">Geoapify</a>'
-              url={`https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${apiKey}`}
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={19}
+              reuseTiles={true}
+              updateWhenIdle={true}
+
             />
             <Marker position={[lat, lon]}>
               <Popup>{trip.location}</Popup>
