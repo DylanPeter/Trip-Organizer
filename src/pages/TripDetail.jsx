@@ -359,6 +359,20 @@ export default function TripDetail() {
                 >
                   {expandedSection[key] && (
                     <>
+                      {/* === EXPLORE BUTTON (only when section is expanded) === */}
+                      {["hotels", "attractions", "foodDining"].includes(key) && (
+                        <div style={{ marginBottom: "2rem" , marginTop: "1rem"}}>
+                          <Link
+                            to={`/explore/${id}?category=${key}`}
+                            className="cta-btn"
+                            style={{ textDecoration: "none" }}
+                          >
+                            {key === "hotels" && "Explore Hotels"}
+                            {key === "attractions" && "Explore Attractions"}
+                            {key === "foodDining" && "Explore Restaurants"}
+                          </Link>
+                        </div>
+                      )}
                       <div className="details-display">
                         <h4>Details</h4>
                         {details[key]?.length > 0 ? (

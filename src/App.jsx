@@ -6,6 +6,7 @@ import TripDetail from "./pages/TripDetail";
 import Profile from "./pages/Profile";
 import TripCreate from "./pages/TripCreate";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ExplorePage from "./pages/ExplorePage";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/trips" element={<Trips />} />
         <Route path="/trips/:id" element={<TripDetail />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/explore/:tripId" element={<ExplorePage />} />
         </Route>
       </Routes>
     </BrowserRouter>
