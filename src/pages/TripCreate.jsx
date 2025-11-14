@@ -56,13 +56,13 @@ export default function TripCreate() {
     fetchSuggestions(debouncedQuery);
   }, [debouncedQuery]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (dateStart && dateEnd && new Date(dateEnd) < new Date(dateStart)) {
       alert("End date can’t be before start date.");
       return;
     }
-    const id = createTrip({
+    const id = await createTrip({
       name: name.trim() || "Untitled Trip",
       location: selectedLocation?.name || location.trim(),
       latitude: selectedLocation?.lat || null,
@@ -71,6 +71,11 @@ export default function TripCreate() {
       country: selectedLocation?.country || null,
       dateStart,
       dateEnd,
+      // photoUrl: photoData.url,
+      // photoAttribution: {
+      //   photographer: photoData.photographer,
+      //   photoLink: photoData.photoLink
+      // }
     });
     navigate(`/trips/${id}`);
   };
