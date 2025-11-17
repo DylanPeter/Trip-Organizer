@@ -112,12 +112,12 @@ h1, h2, h3 {
 }
 
 .navbar-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;          /* ✅ keeps everything in a row vertically centered */
+  justify-content: space-between;
 }
 
 /* Brand */
@@ -1140,4 +1140,35 @@ h1, h2, h3 {
   .details-form .toggle-row {
     margin: 1rem 0;
   }
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nav-user-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  text-decoration: none;
+}
+
+.nav-login-btn,
+.nav-logout-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+header.navbar .nav-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
 }
