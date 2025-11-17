@@ -16,11 +16,9 @@ function saveTrips(trips) {
   localStorage.setItem(TRIPS_KEY, JSON.stringify(trips));
 
   // Notify other parts of the app immediately (same-tab)
-  // Note: native 'storage' only fires across tabs; we synthesize one for this tab.
   try {
     window.dispatchEvent(new StorageEvent("storage", { key: TRIPS_KEY }));
   } catch {
-    // Some browsers restrict StorageEvent construction; fall back to a custom event.
     window.dispatchEvent(new Event("trips.updated"));
   }
 }
@@ -60,7 +58,7 @@ export async function createTrip(partial = {}) {
     : null,
     useDefaultPhoto: false,
     createdAt: new Date().toISOString(),
-    ...partial, // allow additional fields to be set by caller
+    ...partial,
   };
   
   trips.push(trip);
@@ -92,18 +90,8 @@ export function updateTripName(id, name) {
   renameTrip(id, name);
 }
 
-export function updateTrip(trip) {
-  const trips = loadTrips();
-  const idx = trips.findIndex((t) => t.id === trip.id);
-  if (idx !== -1) {
-    trips[idx] = trip;
-    saveTrips(trips);
-  }
-}
-
-
-// Upsert a full trip object (used by comments helpers)
-function setTrip(updated) {
+// ---- Upsert helper, now exported ----
+export function setTrip(updated) {
   const trips = loadTrips();
   const idx = trips.findIndex((t) => t.id === updated.id);
   if (idx === -1) trips.push(updated);
