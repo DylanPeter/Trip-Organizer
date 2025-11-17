@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import SectionComments from "../components/SectionComments";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useParams, Link } from "react-router-dom";
-import { getTrip, updateTripName, setTrip } from "../utils/tripstore";
+import { getTrip, updateTripName, updateTrip } from "../utils/tripstore";
+import TripPhotoHeader from "../components/TripPhotoHeader";
+
 
 const sectionsKey = (tripId) => `trip.${tripId}.sections.v1`;
 const detailsKey = (tripId) => `trip.${tripId}.details.v16`;
