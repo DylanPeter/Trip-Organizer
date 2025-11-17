@@ -23,15 +23,28 @@ export default function TripDetail() {
   const { id } = useParams();
   const { user } = useAuth0();
 
-  const [trip, setTrip] = useState(() => getTrip(id));
+  const [trip, setTripState] = useState(() => getTrip(id));
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState(trip?.name || "");
+
+  // date editing state
+  const [editingDates, setEditingDates] = useState(false);
+  const [startInput, setStartInput] = useState(trip?.dateStart || "");
+  const [endInput, setEndInput] = useState(trip?.dateEnd || "");
 
   const [sections, setSections] = useState({
     hotels: ["Book hotel rooms", "Confirm reservations", "Check-in online"],
     airTravel: ["Book flights", "Check baggage policy", "Print boarding passes"],
-    groundTransit: ["Arrange airport transfer", "Rent car", "Check public transit options"],
-    attractions: ["Research must-see places", "Buy tickets in advance", "Plan daily itinerary"],
+    groundTransit: [
+      "Arrange airport transfer",
+      "Rent car",
+      "Check public transit options",
+    ],
+    attractions: [
+      "Research must-see places",
+      "Buy tickets in advance",
+      "Plan daily itinerary",
+    ],
     foodDining: ["Find popular restaurants", "Make reservations", "Check dietary options"],
     packList: ["Clothes", "Travel documents", "Electronics & chargers"],
   });
@@ -50,9 +63,6 @@ export default function TripDetail() {
   // Budget management
   const [totalBudget, setTotalBudget] = useState(0);
   const [sectionBudgets, setSectionBudgets] = useState({});
-
-  // Tab management
-  const [activeTab, setActiveTab] = useState("checklist");
 
   /* --- Load / Save --- */
   useEffect(() => {
@@ -93,8 +103,11 @@ export default function TripDetail() {
 
   useEffect(() => {
     const t = getTrip(id);
-    setTrip(t);
+    setTripState(t);
     setNameInput(t?.name || "");
+    // keep date inputs in sync
+    setStartInput(t?.dateStart || "");
+    setEndInput(t?.dateEnd || "");
   }, [id]);
 
   /* --- Section Handlers --- */
@@ -181,7 +194,7 @@ export default function TripDetail() {
   };
 
   const handleDeleteSection = (key) => {
-    if (window.confirm("Are you sure you want to delete this section?")) {
+    if (window.confirm("Are you sure?")) {
       setSections((prev) => {
         const copy = { ...prev };
         delete copy[key];
@@ -210,9 +223,38 @@ export default function TripDetail() {
     const next = nameInput.trim() || "Untitled Trip";
     updateTripName(id, next);
     const t = getTrip(id);
-    setTrip(t);
+    setTripState(t);
     setEditing(false);
     document.title = `${t.name} • UsTinerary`;
+  };
+
+  /* --- Trip Dates --- */
+  const startEditDates = () => {
+    setStartInput(trip?.dateStart || "");
+    setEndInput(trip?.dateEnd || "");
+    setEditingDates(true);
+  };
+
+  const cancelEditDates = () => {
+    setEditingDates(false);
+  };
+
+  const saveTripDates = () => {
+    if (!trip) return;
+    const updated = {
+      ...trip,
+      dateStart: startInput || "",
+      dateEnd: endInput || "",
+    };
+
+    try {
+      setTrip(updated);
+    } catch (err) {
+      console.error("Failed to update trip dates:", err);
+    }
+
+    setTripState(updated);
+    setEditingDates(false);
   };
 
   /* --- Helpers --- */
@@ -267,304 +309,371 @@ export default function TripDetail() {
     );
 
   return (
-    <div
-      className="trip-background-wrapper"
-      style={{
-      backgroundImage: trip.useDefaultPhoto
-        ? `url(${DEFAULT_TRIP_PHOTO})`
-        : `url(${trip.photoUrl})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundAttachment: "fixed",
-      minHeight: "100vh",
-      width: "100%",
-      }}
-    >
-      <main className="detail-main">
-        <header className="trip-header">
-          {/* <TripPhotoHeader
-            trip={trip}
-            onPhotoChange={(url) => {
-              const updated = { ...trip, photoUrl: url };
-              // persist to localStorage
-              const all = getTrips().map((t) =>
-                t.id === trip.id ? updated : t
-              );
-              saveTrips(all);
-              setTrip(updated);
-            }}
-          /> */}
-          {editing ? (
-            <div>
+    <main className="detail-main">
+      <header className="trip-header">
+        {editing ? (
+          <div>
+            <input
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              autoFocus
+            />
+            <button onClick={saveName}>Save</button>
+            <button onClick={cancelEdit}>Cancel</button>
+          </div>
+        ) : (
+          <div>
+            <h1>{trip.name}</h1>
+            <button onClick={startEdit}>Rename</button>
+          </div>
+        )}
+        <p>
+          {trip.location ? `${trip.location} • ` : ""}
+
+          {editingDates ? (
+            <span className="edit-dates-container">
               <input
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
+                type="date"
+                value={startInput}
+                onChange={(e) => setStartInput(e.target.value)}
+              />
+              <span> → </span>
+              <input
+                type="date"
+                value={endInput}
+                onChange={(e) => setEndInput(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={saveTripDates}
+                className="nav-item"
+                style={{ marginLeft: "0.5rem" }}
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={cancelEditDates}
+                className="nav-item"
+              >
+                Cancel
+              </button>
+            </span>
+          ) : (
+            <>
+              {trip.dateStart && trip.dateEnd
+                ? `${formatDate(trip.dateStart)} → ${formatDate(trip.dateEnd)}`
+                : trip.dateStart
+                ? formatDate(trip.dateStart)
+                : "Dates TBA"}
+              <button
+                type="button"
+                className="nav-item"
+                onClick={startEditDates}
+                style={{ marginLeft: "0.75rem" }}
+              >
+                Edit Dates
+              </button>
+            </>
+          )}
+        </p>
+      </header>
+
+      {/* Checklist always visible */}
+      <section className="checklist-section">
+        <h2>Travel Planning Checklist</h2>
+
+        {Object.entries(sections).map(([key, items]) => {
+          const isCustom = !BUILT_IN_SECTIONS.includes(key);
+          return (
+            <div key={key} className="checklist-category">
+              <div className="category-header" onClick={() => toggleSection(key)}>
+                <h3>{formatLabel(key)}</h3>
+                <div className="category-actions">
+                  <span className="collapse-icon">
+                    {expandedSection[key] ? "▲" : "▼"}
+                  </span>
+                  {isCustom && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRenamingSection(key);
+                          setRenameValue(formatLabel(key));
+                          const next = window.prompt(
+                            "Rename section:",
+                            formatLabel(key)
+                          );
+                          if (next && next.trim()) {
+                            setRenameValue(next);
+                            handleRenameSection(key);
+                          }
+                        }}
+                        className="nav-item"
+                      >
+                        ✏️ Rename
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteSection(key);
+                        }}
+                        className="nav-item"
+                      >
+                        🗑 Delete
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div
+                className={`section-content ${
+                  expandedSection[key] ? "expanded" : "collapsed"
+                }`}
+              >
+                {expandedSection[key] && (
+                  <>
+                    {/* === EXPLORE BUTTON === */}
+                    {["hotels", "attractions", "foodDining"].includes(key) && (
+                      <div style={{ marginBottom: "2rem", marginTop: "1rem" }}>
+                        <Link
+                          to={`/explore/${id}?category=${key}`}
+                          className="cta-btn"
+                          style={{ textDecoration: "none" }}
+                        >
+                          {key === "hotels" && "Explore Hotels"}
+                          {key === "attractions" && "Explore Attractions"}
+                          {key === "foodDining" && "Explore Restaurants"}
+                        </Link>
+                      </div>
+                    )}
+
+                    <div className="details-display">
+                      <h4>Details</h4>
+                      {details[key]?.length > 0 ? (
+                        details[key].map((entry, i) => (
+                          <div key={i} className="details-entry">
+                            <div className="details-preview">
+                              {Object.entries(entry)
+                                .filter(
+                                  ([k, v]) =>
+                                    k !== "notes" &&
+                                    k !== "pollingEnabled" &&
+                                    v
+                                )
+                                .map(([field, value]) => {
+                                  // Use nicer formatting for date/time pairs if present
+                                  if (
+                                    field === "checkIn" &&
+                                    entry.checkIn &&
+                                    entry.checkInTime
+                                  ) {
+                                    return formatDateTime(
+                                      entry.checkIn,
+                                      entry.checkInTime
+                                    );
+                                  }
+                                  if (
+                                    field === "checkOut" &&
+                                    entry.checkOut &&
+                                    entry.checkOutTime
+                                  ) {
+                                    return formatDateTime(
+                                      entry.checkOut,
+                                      entry.checkOutTime
+                                    );
+                                  }
+                                  if (
+                                    field === "departureDate" &&
+                                    entry.departureDate &&
+                                    entry.departureTime
+                                  ) {
+                                    return formatDateTime(
+                                      entry.departureDate,
+                                      entry.departureTime
+                                    );
+                                  }
+                                  if (
+                                    field === "arrivalDate" &&
+                                    entry.arrivalDate &&
+                                    entry.arrivalTime
+                                  ) {
+                                    return formatDateTime(
+                                      entry.arrivalDate,
+                                      entry.arrivalTime
+                                    );
+                                  }
+                                  if (
+                                    field === "pickupDate" &&
+                                    entry.pickupDate &&
+                                    entry.pickupTime
+                                  ) {
+                                    return formatDateTime(
+                                      entry.pickupDate,
+                                      entry.pickupTime
+                                    );
+                                  }
+                                  if (
+                                    field === "dropoffDate" &&
+                                    entry.dropoffDate &&
+                                    entry.dropoffTime
+                                  ) {
+                                    return formatDateTime(
+                                      entry.dropoffDate,
+                                      entry.dropoffTime
+                                    );
+                                  }
+                                  return value;
+                                })
+                                .join(" • ")}
+                            </div>
+                            <div className="form-actions">
+                              <button
+                                className="nav-item"
+                                onClick={() => toggleEntry(key, i)}
+                              >
+                                {expandedEntry[key] === i
+                                  ? "Hide Details"
+                                  : "View Details"}
+                              </button>
+                              <button
+                                className="nav-item"
+                                onClick={() =>
+                                  setShowForm((p) => ({ ...p, [key]: i }))
+                                }
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="nav-item"
+                                onClick={() => handleDeleteDetails(key, i)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                            {expandedEntry[key] === i && (
+                              <>
+                                {renderFullDetails(entry, formatLabel)}
+                                {entry.pollingEnabled && (
+                                  <PollBox
+                                    tripId={id}
+                                    sectionKey={key}
+                                    entryIndex={i}
+                                    user={user}
+                                  />
+                                )}
+                              </>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="details-preview">No details yet.</p>
+                      )}
+                      <button
+                        onClick={() =>
+                          setShowForm((p) => ({ ...p, [key]: "new" }))
+                        }
+                        className="add-btn"
+                      >
+                        + Add Another
+                      </button>
+                    </div>
+
+                    {showForm[key] !== false && (
+                      <DetailsForm
+                        sectionKey={key}
+                        existing={
+                          showForm[key] === "new"
+                            ? null
+                            : details[key]?.[showForm[key]] || null
+                        }
+                        onSave={(section, formData) =>
+                          handleAddDetails(
+                            section,
+                            formData,
+                            showForm[key] === "new" ? null : showForm[key]
+                          )
+                        }
+                        onCancel={() =>
+                          setShowForm((prev) => ({ ...prev, [key]: false }))
+                        }
+                      />
+                    )}
+
+                    <ul className="checklist-items">
+                      {items.map((item, i) => (
+                        <li key={i}>
+                          <input type="checkbox" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <AddItemForm
+                      onAdd={(newItem) => addItem(key, newItem)}
+                      placeholder={`Add new ${formatLabel(key)} item`}
+                    />
+
+                    {/* comments */}
+                    <SectionComments tripId={id} sectionKey={key} user={user} />
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        <div className="add-section-area">
+          {addingSection ? (
+            <form onSubmit={handleAddSection} className="add-section-form">
+              <input
+                type="text"
+                value={newSectionName}
+                onChange={(e) => setNewSectionName(e.target.value)}
+                placeholder="Enter new section name"
                 autoFocus
               />
-              <button onClick={saveName}>Save</button>
-              <button onClick={cancelEdit}>Cancel</button>
-            </div>
+              <button type="submit" className="cta-btn">
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddingSection(false)}
+                className="nav-item"
+              >
+                Cancel
+              </button>
+            </form>
           ) : (
-            <div>
-              <h1>{trip.name}</h1>
-              <button onClick={startEdit}>Rename</button>
-            </div>
+            <button
+              onClick={() => setAddingSection(true)}
+              className="add-btn"
+            >
+              + Add Section
+            </button>
           )}
-          <p>
-            {trip.location ? `${trip.location} • ` : ""}
-            {trip.dateStart && trip.dateEnd
-              ? `${trip.dateStart} → ${trip.dateEnd}`
-              : trip.dateStart
-              ? trip.dateStart
-              : "Dates TBA"}
-          </p>
-        </header>
-        {/* Tabs */}
-        <div className="tab-switcher">
-          <button
-            className={activeTab === "checklist" ? "active" : ""}
-            onClick={() => setActiveTab("checklist")}
-          >
-            Checklist
-          </button>
-          <button
-            className={activeTab === "budget" ? "active" : ""}
-            onClick={() => setActiveTab("budget")}
-          >
-            Budget
-          </button>
         </div>
-        {activeTab === "checklist" ? (
-          <section className="checklist-section">
-            <h2>Travel Planning Checklist</h2>
-            {Object.entries(sections).map(([key, items]) => {
-              const isCustom = !BUILT_IN_SECTIONS.includes(key);
-              return (
-                <div key={key} className="checklist-category">
-                  <div
-                    className="category-header"
-                    onClick={() => toggleSection(key)}
-                  >
-                    <h3>{formatLabel(key)}</h3>
-                    <div className="category-actions">
-                      <span className="collapse-icon">
-                        {expandedSection[key] ? "▲" : "▼"}
-                      </span>
-                      {isCustom && (
-                        <>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setRenamingSection(key);
-                              setRenameValue(formatLabel(key));
-                            }}
-                            className="nav-item"
-                          >
-                            ✏️ Rename
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteSection(key);
-                            }}
-                            className="nav-item"
-                          >
-                            🗑 Delete
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div
-                    className={`section-content ${
-                      expandedSection[key] ? "expanded" : "collapsed"
-                    }`}
-                  >
-                    {expandedSection[key] && (
-                      <>
-                        {/* === EXPLORE BUTTON (only when section is expanded) === */}
-                        {["hotels", "attractions", "foodDining"].includes(key) && (
-                          <div style={{ marginBottom: "2rem" , marginTop: "1rem"}}>
-                            <Link
-                              to={`/explore/${id}?category=${key}`}
-                              className="cta-btn"
-                              style={{ textDecoration: "none" }}
-                            >
-                              {key === "hotels" && "Explore Hotels"}
-                              {key === "attractions" && "Explore Attractions"}
-                              {key === "foodDining" && "Explore Restaurants"}
-                            </Link>
-                          </div>
-                        )}
-                        <div className="details-display">
-                          <h4>Details</h4>
-                          {details[key]?.length > 0 ? (
-                            details[key].map((entry, i) => (
-                              <div key={i} className="details-entry">
-                                <div className="details-preview">
-                                  {Object.entries(entry)
-                                    .filter(([k, v]) => k !== "notes" && k !== "pollingEnabled" && v)
-                                    .map(([, v]) => v)
-                                    .join(" • ")}
-                                </div>
-                                <div className="form-actions">
-                                  <button
-                                    className="nav-item"
-                                    onClick={() => toggleEntry(key, i)}
-                                  >
-                                    {expandedEntry[key] === i
-                                      ? "Hide Details"
-                                      : "View Details"}
-                                  </button>
-                                  <button
-                                    className="nav-item"
-                                    onClick={() =>
-                                      setShowForm((p) => ({ ...p, [key]: i }))
-                                    }
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    className="nav-item"
-                                    onClick={() =>
-                                      handleDeleteDetails(key, i)
-                                    }
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                                {expandedEntry[key] === i && (
-                                  <>
-                                    {renderFullDetails(entry, formatLabel)}
-                                    {entry.pollingEnabled && (
-                                      <PollBox
-                                        tripId={id}
-                                        sectionKey={key}
-                                        entryIndex={i}
-                                        user={user}
-                                      />
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            ))
-                          ) : (
-                            <p className="details-preview">No details yet.</p>
-                          )}
-                          <button
-                            onClick={() =>
-                              setShowForm((p) => ({ ...p, [key]: "new" }))
-                            }
-                            className="add-btn"
-                          >
-                            + Add Another
-                          </button>
-                        </div>
-                        {showForm[key] !== false && (
-                          <DetailsForm
-                            sectionKey={key}
-                            existing={
-                              showForm[key] === "new"
-                                ? null
-                                : details[key]?.[showForm[key]] || null
-                            }
-                            onSave={(section, formData) =>
-                              handleAddDetails(
-                                section,
-                                formData,
-                                showForm[key] === "new" ? null : showForm[key]
-                              )
-                            }
-                            onCancel={() =>
-                              setShowForm((prev) => ({ ...prev, [key]: false }))
-                            }
-                          />
-                        )}
-                        <ul className="checklist-items">
-                          {items.map((item, i) => (
-                            <li key={i}>
-                              <input type="checkbox" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <AddItemForm
-                          onAdd={(newItem) => addItem(key, newItem)}
-                          placeholder={`Add new ${formatLabel(key)} item`}
-                        />
-                        {/* per-section comments */}
-                        <SectionComments tripId={id} sectionKey={key} user={user} />
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-            <div className="add-section-area">
-              {addingSection ? (
-                <form onSubmit={handleAddSection} className="add-section-form">
-                  <input
-                    type="text"
-                    value={newSectionName}
-                    onChange={(e) => setNewSectionName(e.target.value)}
-                    placeholder="Enter new section name"
-                    autoFocus
-                  />
-                  <button type="submit" className="cta-btn">Add</button>
-                  <button
-                    type="button"
-                    onClick={() => setAddingSection(false)}
-                    className="nav-item"
-                  >
-                    Cancel
-                  </button>
-                </form>
-              ) : (
-                <button onClick={() => setAddingSection(true)} className="add-btn">
-                  + Add Section
-                </button>
-              )}
-            </div>
-          </section>
-        ) : (
-          <BudgetSummary
-            {...{
-              totalBudget,
-              setTotalBudget,
-              sectionBudgets,
-              setSectionBudgets,
-              sections,
-              totalAllocated,
-              remainingBudget,
-              formatLabel,
-            }}
-          />
-        )}
-        <footer>
-          <Link to="/trips" className="back-to-trips">← Back to all trips</Link>
-        </footer>
-      </main>
-      {trip.photoAttribution && (
-        <div className="photo-attribution">
-          <a
-            href={trip.photoAttribution.photoLink}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Photo by {trip.photoAttribution.photographer}
-          </a>{" "}
-          on{" "}
-          <a
-            href="https://unsplash.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Unsplash
-          </a>
-        </div>
-      )}
+      </section>
 
-    </div>
+      {/* Floating budget widget */}
+      <BudgetWidget
+        totalBudget={totalBudget}
+        setTotalBudget={setTotalBudget}
+        sectionBudgets={sectionBudgets}
+        setSectionBudgets={setSectionBudgets}
+        sections={sections}
+        totalAllocated={totalAllocated}
+        remainingBudget={remainingBudget}
+        formatLabel={formatLabel}
+      />
+
+      <footer>
+        <Link to="/trips" className="back-to-trips">
+          ← Back to all trips
+        </Link>
+      </footer>
+    </main>
   );
 }
 
@@ -589,7 +698,9 @@ function renderFullDetails(entry, formatLabel) {
   );
 }
 
-/* === BudgetSummary === */
+/* === (Optional legacy) BudgetSummary === */
+/* Kept here in case you still want a full-page budget view later.
+   Currently unused since we moved to the floating widget. */
 function BudgetSummary({
   totalBudget,
   setTotalBudget,
@@ -653,8 +764,10 @@ function BudgetSummary({
               </td>
               <td>
                 {totalBudget
-                  ? (((sectionBudgets[key] || 0) / totalBudget) * 100).toFixed(1) +
-                    "%"
+                  ? (
+                      ((sectionBudgets[key] || 0) / totalBudget) *
+                      100
+                    ).toFixed(1) + "%"
                   : "—"}
               </td>
             </tr>
@@ -663,7 +776,8 @@ function BudgetSummary({
       </table>
 
       <p>
-        <strong>Total allocated:</strong> ${totalAllocated} / ${totalBudget || 0}
+        <strong>Total allocated:</strong> ${totalAllocated} / $
+        {totalBudget || 0}
       </p>
       <p>
         <strong>Remaining:</strong> ${remainingBudget}
@@ -715,9 +829,21 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
           pollingEnabled: false,
         };
       case "attractions":
-        return { attractionName: "", location: "", date: "", notes: "", pollingEnabled: false };
+        return {
+          attractionName: "",
+          location: "",
+          date: "",
+          notes: "",
+          pollingEnabled: false,
+        };
       case "foodDining":
-        return { restaurantName: "", location: "", reservationTime: "", notes: "", pollingEnabled: false };
+        return {
+          restaurantName: "",
+          location: "",
+          reservationTime: "",
+          notes: "",
+          pollingEnabled: false,
+        };
       case "packList":
         return { notes: "", pollingEnabled: false };
       default:
@@ -755,7 +881,6 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
     onSave(sectionKey, formData);
   };
 
-  // groups date+time pairs for layout
   const pairedFields = {
     hotels: [
       ["checkIn", "checkInTime"],
@@ -789,7 +914,12 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
             const [dateKey, timeKey] = group;
             return (
               <div key={f} className="form-row paired-inputs">
-                <label>{formatLabel(f.replace("Date", "").replace("check", "Check "))}:</label>
+                <label>
+                  {formatLabel(
+                    f.replace("Date", "").replace("check", "Check ")
+                  )}
+                  :
+                </label>
                 <div className="pair-group">
                   <input
                     type="date"
@@ -848,8 +978,12 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
       {error && <p className="form-error">{error}</p>}
 
       <div className="form-actions">
-        <button type="submit" className="cta-btn">Save</button>
-        <button type="button" onClick={onCancel} className="nav-item">Cancel</button>
+        <button type="submit" className="cta-btn">
+          Save
+        </button>
+        <button type="button" onClick={onCancel} className="nav-item">
+          Cancel
+        </button>
       </div>
     </form>
   );
@@ -872,7 +1006,9 @@ function AddItemForm({ onAdd, placeholder }) {
         placeholder={placeholder}
         className="add-input"
       />
-      <button type="submit" className="add-btn">Add</button>
+      <button type="submit" className="add-btn">
+        Add
+      </button>
     </form>
   );
 }
@@ -903,7 +1039,7 @@ function TimePicker({ value, onChange }) {
         : h;
     const formatted = `${adjustedH.toString().padStart(2, "0")}:${m}`;
     onChange(formatted);
-  }, [time]);
+  }, [time, onChange]);
 
   const hours = Array.from({ length: 12 }, (_, i) =>
     (i + 1).toString().padStart(2, "0")
@@ -991,6 +1127,284 @@ function PollBox({ tripId, sectionKey, entryIndex, user }) {
         <button onClick={() => handleVote("down")} className="poll-btn down">
           👎 {votes.down} ({downPercent}%)
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* === Floating BudgetWidget === */
+function BudgetWidget({
+  totalBudget,
+  setTotalBudget,
+  sectionBudgets,
+  setSectionBudgets,
+  sections,
+  totalAllocated,
+  remainingBudget,
+  formatLabel,
+}) {
+  const [open, setOpen] = useState(false);
+  const [pinned, setPinned] = useState(true);
+  const [position, setPosition] = useState({ x: null, y: 100 });
+  const [size, setSize] = useState({ width: 220, height: 360 });
+  const [isMobile, setIsMobile] = useState(false);
+  const [navHeight, setNavHeight] = useState(120); // default fallback
+  const bodyRef = React.useRef(null);
+
+
+useEffect(() => {
+  // Try to detect your actual nav/header element
+  const nav = document.querySelector("nav, .nav-bar, header");
+
+  if (nav) {
+    const rect = nav.getBoundingClientRect();
+    setNavHeight(rect.height + 20); // +20px padding
+  }
+}, []);
+
+useEffect(() => {
+  if (open && bodyRef.current) {
+    const contentHeight = bodyRef.current.scrollHeight;
+
+    // Fit widget on screen while showing full content
+    const maxHeight = window.innerHeight - (position.y + 40);
+
+    setSize((prev) => ({
+      ...prev,
+      height: Math.min(contentHeight + 40, maxHeight), // +40 for padding/header
+    }));
+  }
+}, [open, position.y]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (position.x === null && !isMobile) {
+      const defaultWidth = size.width || 280;
+      setPosition({
+        x: window.innerWidth - defaultWidth - 20,
+        y: 100,
+      });
+    }
+  }, [position.x, size.width, isMobile]);
+
+  const handleHeaderMouseDown = (e) => {
+    if (pinned || isMobile) return;
+    e.preventDefault();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startPos = { ...position };
+
+    const onMouseMove = (moveEvent) => {
+      if (typeof window === "undefined") return;
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      const maxX = window.innerWidth - 120;
+      const maxY = window.innerHeight - 80;
+      setPosition({
+        x: Math.min(Math.max(10, startPos.x + dx), maxX),
+        y: Math.max(startPos.y + dy, navHeight + 10)
+
+
+      });
+    };
+
+    const onMouseUp = () => {
+  window.removeEventListener("mousemove", onMouseMove);
+  window.removeEventListener("mouseup", onMouseUp);
+
+  // Snap at end of drag
+  setPosition((p) => snapToTop(p));
+
+
+};
+
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
+
+  const handleResizeMouseDown = (e) => {
+    if (isMobile) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startSize = { ...size };
+
+    const onMouseMove = (moveEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      setSize((prev) => ({
+        width: 280, // frozen width
+        height: Math.max(220, startSize.height + dy),
+      }));
+
+
+
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
+
+  const toggleOpen = () => setOpen((o) => !o);
+  const togglePinned = (e) => {
+    e.stopPropagation();
+    setPinned((p) => !p);
+  };
+
+  const widgetStyle = {};
+  if (!isMobile) {
+    if (position.x !== null) {
+      widgetStyle.top = position.y;
+      widgetStyle.left = position.x;
+    }
+    widgetStyle.width = size.width;
+    if (open) {
+      widgetStyle.height = size.height;
+    }
+  }
+
+  const totalSections = Object.keys(sections).length || 0;
+
+
+const SNAP_MARGIN = 60; // px sensitivity near left/right edges
+
+const snapToTop = (pos) => {
+  if (typeof window === "undefined") return pos;
+
+  const w = size.width;
+  const screenW = window.innerWidth;
+
+  let { x, y } = pos;
+
+  // Snap LEFT (top-left)
+  if (x < SNAP_MARGIN) {
+    x = 20;
+    y = navHeight + 10;
+  }
+
+  // Snap RIGHT (top-right)
+  if (x > screenW - w - SNAP_MARGIN) {
+    x = screenW - w - 20;
+    y = navHeight + 10;
+  }
+
+  // Snap vertically only to top safe zone
+  if (y < navHeight + SNAP_MARGIN) {
+    y = navHeight + 10;
+  }
+  
+
+  return { x, y };
+  
+};
+
+  return (
+    <div
+      className={`budget-widget ${open ? "open" : "closed"} ${
+        pinned ? "pinned" : "unpinned"
+      } ${isMobile ? "mobile" : "desktop"}`}
+      style={widgetStyle}
+    >
+      <div
+        className="budget-widget-header"
+      >
+        <button
+          type="button"
+          className="budget-widget-title"
+          onClick={toggleOpen}
+        >
+          Budget
+          {totalBudget ? ` • $${totalBudget}` : ""}
+        </button>
+      </div>
+
+      <div className="budget-widget-shell">
+        <div className="budget-widget-body" ref={bodyRef}>
+          <div className="budget-widget-summary">
+            <div>
+              <span className="budget-label">Total:</span>{" "}
+              <input
+                type="number"
+                value={totalBudget}
+                onChange={(e) =>
+                  setTotalBudget(Number(e.target.value) || 0)
+                }
+              />
+            </div>
+            <div>
+              <span className="budget-label">Allocated:</span>{" "}
+              <span>${totalAllocated}</span>
+            </div>
+            <div>
+              <span className="budget-label">Remaining:</span>{" "}
+              <span
+                className={
+                  remainingBudget < 0 ? "budget-negative" : "budget-positive"
+                }
+              >
+                ${remainingBudget}
+              </span>
+            </div>
+          </div>
+
+          <div className="budget-widget-sections">
+            {Object.keys(sections).map((key) => {
+              const value = sectionBudgets[key] || 0;
+              const percent =
+                totalBudget > 0
+                  ? Math.min(100, (value / totalBudget) * 100)
+                  : 0;
+              return (
+                <div key={key} className="budget-widget-row">
+                  <div className="budget-widget-row-label">
+                    {formatLabel(key)}
+                  </div>
+                  <div className="budget-widget-row-input">
+                    <input
+                      type="number"
+                      value={value || ""}
+                      onChange={(e) =>
+                        setSectionBudgets((prev) => ({
+                          ...prev,
+                          [key]: Number(e.target.value) || 0,
+                        }))
+                      }
+                    />
+                    <div className="budget-widget-progress">
+                      <div
+                        className="budget-widget-progress-fill"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                    <span className="budget-widget-percent">
+                      {totalBudget ? `${percent.toFixed(0)}%` : "—"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
       </div>
     </div>
   );

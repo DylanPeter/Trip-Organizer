@@ -1,25 +1,28 @@
-// src/components/UserBadge.jsx
-import React, { useEffect, useState } from 'react';
-import { getProfile } from '../utils/profilestore';
+import React from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { Link } from "react-router-dom";
+import { getProfile } from "../utils/profilestore";
 
 export default function UserBadge() {
-  const [p, setP] = useState(getProfile());
+  const { user, isAuthenticated, loginWithRedirect } = useAuth0();
+  const localProfile = getProfile();
 
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === 'profile.v1') setP(getProfile());
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
+  if (!isAuthenticated) {
+    return (
+      <button className="nav-login-btn" onClick={() => loginWithRedirect()}>
+        Log in / Sign up
+      </button>
+    );
+  }
 
-  const avatar =
-    p.avatarUrl || 'https://via.placeholder.com/28?text=%F0%9F%91%A4';
+  const avatar = localProfile.avatarUrl || user?.picture;
+  const name = localProfile.name || user?.name;
 
   return (
-    <div className="flex items-center gap-2">
-      <img src={avatar} alt="" className="h-7 w-7 rounded-full object-cover" />
-      <span className="text-sm text-gray-700">{p.name || 'Traveler'}</span>
-    </div>
+    <Link to="/profile" className="nav-user-link">
+      {/* ✅ NOTE: nav-avatar class here */}
+      <img src={avatar} alt="avatar" className="nav-avatar" />
+      <span>{name}</span>
+    </Link>
   );
 }
