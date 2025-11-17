@@ -90,6 +90,15 @@ export function updateTripName(id, name) {
   renameTrip(id, name);
 }
 
+export function updateTrip(trip) {
+  const trips = loadTrips();
+  const idx = trips.findIndex((t) => t.id === trip.id);
+  if (idx !== -1) {
+    trips[idx] = trip;
+    saveTrips(trips);
+  }
+}
+
 // ---- Upsert helper, now exported ----
 export function setTrip(updated) {
   const trips = loadTrips();
