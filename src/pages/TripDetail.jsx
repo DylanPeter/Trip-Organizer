@@ -268,6 +268,16 @@ export default function TripDetail() {
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
+  const formatTime12 = (t) => {
+    if (!t) return "";
+    const [h, m] = t.split(":");
+    let hh = parseInt(h, 10);
+    const period = hh >= 12 ? "PM" : "AM";
+    if (hh === 0) hh = 12;
+    else if (hh > 12) hh -= 12;
+    return `${hh}:${m} ${period}`;
+  };
+
   const formatDateTime = (date, time) => {
     if (!date && !time) return "";
     if (!date) return time;
@@ -472,6 +482,21 @@ export default function TripDetail() {
                                   )
                                   .map(([field, value]) => {
                                     // Use nicer formatting for date/time pairs if present
+                                    // Skip standalone time fields that are part of paired date/time fields.
+                                    // These pairs already get formatted together (e.g., "Nov 21, 6:30 AM").
+                                    const pairedTimeFields = new Set([
+                                      "checkInTime",
+                                      "checkOutTime",
+                                      "departureTime",
+                                      "arrivalTime",
+                                      "pickupTime",
+                                      "dropoffTime",
+                                    ]);
+
+                                    if (pairedTimeFields.has(field)) {
+                                      return null; // do not render this field here
+                                    }
+
                                     if (
                                       field === "checkIn" &&
                                       entry.checkIn &&
@@ -531,6 +556,14 @@ export default function TripDetail() {
                                         entry.dropoffDate,
                                         entry.dropoffTime
                                       );
+                                    }
+                                    // Format standalone times (reservationTime, pickupTime, etc.)
+                                    if (
+                                      field.toLowerCase().includes("time") &&
+                                      typeof value === "string" &&
+                                      value.includes(":")
+                                    ) {
+                                      return formatTime12(value);
                                     }
                                     return value;
                                   })
@@ -1037,44 +1070,55 @@ function AddItemForm({ onAdd, placeholder }) {
 
 /* === TimePicker === */
 function TimePicker({ value, onChange }) {
+  // ---------- Helpers ----------
   const parseTime = (t) => {
     if (!t) return { h: "", m: "", period: "AM" };
-    const [hRaw, mRaw] = t.split(":");
-    let h = parseInt(hRaw, 10);
-    const m = mRaw ? mRaw.slice(0, 2) : "00";
-    const period = h >= 12 ? "PM" : "AM";
-    if (h > 12) h -= 12;
-    if (h === 0) h = 12;
-    return { h: h.toString().padStart(2, "0"), m, period };
+
+    const [rawH, rawM] = t.split(":");
+    let h24 = parseInt(rawH, 10);
+    const m = rawM || "00";
+
+    const period = h24 >= 12 ? "PM" : "AM";
+    let h12 = h24 % 12;
+    if (h12 === 0) h12 = 12;
+
+    return {
+      h: h12.toString().padStart(2, "0"),
+      m: m.padStart(2, "0"),
+      period
+    };
   };
 
+  const to24 = ({ h, m, period }) => {
+    if (!h) return "";
+    let n = parseInt(h, 10);
+    if (period === "PM" && n < 12) n += 12;
+    if (period === "AM" && n === 12) n = 0;
+    return `${n.toString().padStart(2, "0")}:${m || "00"}`;
+  };
+
+  // ---------- Internal state ----------
   const [time, setTime] = useState(parseTime(value));
 
+  // Keep in sync when parent changes the value externally
   useEffect(() => {
-    setTime(parseTime(value));
+    const parsed = parseTime(value);
+    setTime(parsed);
   }, [value]);
 
-  const emit = (next) => {
-    const hNum = parseInt(time.h || 0, 10);
-    const m = next.m || "00";
-    const adjustedH =
-      next.period === "PM" && hNum < 12
-        ? hNum + 12
-        : next.period === "AM" && hNum === 12
-        ? 0
-        : hNum;
-    const formatted = `${adjustedH.toString().padStart(2, "0")}:${m}`;
-    onChange(formatted);
+   // Emit changes AFTER state settles (avoids React warning)
+  useEffect(() => {
+    const formatted = to24(time);
+    if (formatted !== value) {
+      onChange(formatted);
+    }
+  }, [time]); // runs after state update, not during render
+
+  const update = (field, val) => {
+    setTime((prev) => ({ ...prev, [field]: val }));
   };
 
-  const updatePart = (part, newVal) => {
-    setTime((prev) => {
-      const next = { ...prev, [part]: newVal};
-      emit(next);
-      return next;
-    });
-  };
-
+  // ---------- Lists ----------
   const hours = Array.from({ length: 12 }, (_, i) =>
     (i + 1).toString().padStart(2, "0")
   );
@@ -1082,12 +1126,10 @@ function TimePicker({ value, onChange }) {
     i.toString().padStart(2, "0")
   );
 
+  // ---------- UI ----------
   return (
     <div className="time-picker">
-      <select
-        value={time.h}
-        onChange={(e) => updatePart("h", e.target.value)}
-      >
+      <select value={time.h} onChange={(e) => update("h", e.target.value)}>
         <option value="">HH</option>
         {hours.map((h) => (
           <option key={h} value={h}>
@@ -1095,11 +1137,10 @@ function TimePicker({ value, onChange }) {
           </option>
         ))}
       </select>
+
       <span className="time-separator">:</span>
-      <select
-        value={time.m}
-        onChange={(e) => updatePart("m", e.target.value)}
-      >
+
+      <select value={time.m} onChange={(e) => update("m", e.target.value)}>
         <option value="">MM</option>
         {minutes.map((m) => (
           <option key={m} value={m}>
@@ -1107,9 +1148,10 @@ function TimePicker({ value, onChange }) {
           </option>
         ))}
       </select>
+
       <select
         value={time.period}
-        onChange={(e) => updatePart("period", e.target.value)}
+        onChange={(e) => update("period", e.target.value)}
       >
         <option value="AM">AM</option>
         <option value="PM">PM</option>
@@ -1117,6 +1159,7 @@ function TimePicker({ value, onChange }) {
     </div>
   );
 }
+
 
 /* === PollBox === */
 function PollBox({ tripId, sectionKey, entryIndex, user }) {
