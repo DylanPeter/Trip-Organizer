@@ -248,7 +248,7 @@ export default function TripDetail() {
     };
 
     try {
-      setTrip(updated);
+      setTripState(updated);
     } catch (err) {
       console.error("Failed to update trip dates:", err);
     }
@@ -309,371 +309,393 @@ export default function TripDetail() {
     );
 
   return (
-    <main className="detail-main">
-      <header className="trip-header">
-        {editing ? (
-          <div>
-            <input
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              autoFocus
-            />
-            <button onClick={saveName}>Save</button>
-            <button onClick={cancelEdit}>Cancel</button>
-          </div>
-        ) : (
-          <div>
-            <h1>{trip.name}</h1>
-            <button onClick={startEdit}>Rename</button>
-          </div>
-        )}
-        <p>
-          {trip.location ? `${trip.location} • ` : ""}
-
-          {editingDates ? (
-            <span className="edit-dates-container">
+    <div
+      className="trip-background-wrapper"
+      style={{
+      backgroundImage: trip.useDefaultPhoto
+        ? `url(${DEFAULT_TRIP_PHOTO})`
+        : `url(${trip.photoUrl})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundAttachment: "fixed",
+      minHeight: "100vh",
+      width: "100%",
+      }}
+    > 
+      <main className="detail-main">
+        <header className="trip-header">
+          {editing ? (
+            <div>
               <input
-                type="date"
-                value={startInput}
-                onChange={(e) => setStartInput(e.target.value)}
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                autoFocus
               />
-              <span> → </span>
-              <input
-                type="date"
-                value={endInput}
-                onChange={(e) => setEndInput(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={saveTripDates}
-                className="nav-item"
-                style={{ marginLeft: "0.5rem" }}
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={cancelEditDates}
-                className="nav-item"
-              >
-                Cancel
-              </button>
-            </span>
+              <button onClick={saveName}>Save</button>
+              <button onClick={cancelEdit}>Cancel</button>
+            </div>
           ) : (
-            <>
-              {trip.dateStart && trip.dateEnd
-                ? `${formatDate(trip.dateStart)} → ${formatDate(trip.dateEnd)}`
-                : trip.dateStart
-                ? formatDate(trip.dateStart)
-                : "Dates TBA"}
-              <button
-                type="button"
-                className="nav-item"
-                onClick={startEditDates}
-                style={{ marginLeft: "0.75rem" }}
-              >
-                Edit Dates
-              </button>
-            </>
+            <div>
+              <h1>{trip.name}</h1>
+              <button onClick={startEdit}>Rename</button>
+            </div>
           )}
-        </p>
-      </header>
-
-      {/* Checklist always visible */}
-      <section className="checklist-section">
-        <h2>Travel Planning Checklist</h2>
-
-        {Object.entries(sections).map(([key, items]) => {
-          const isCustom = !BUILT_IN_SECTIONS.includes(key);
-          return (
-            <div key={key} className="checklist-category">
-              <div className="category-header" onClick={() => toggleSection(key)}>
-                <h3>{formatLabel(key)}</h3>
-                <div className="category-actions">
-                  <span className="collapse-icon">
-                    {expandedSection[key] ? "▲" : "▼"}
-                  </span>
-                  {isCustom && (
+          <p>
+            {trip.location ? `${trip.location} • ` : ""}
+            {editingDates ? (
+              <span className="edit-dates-container">
+                <input
+                  type="date"
+                  value={startInput}
+                  onChange={(e) => setStartInput(e.target.value)}
+                />
+                <span> → </span>
+                <input
+                  type="date"
+                  value={endInput}
+                  onChange={(e) => setEndInput(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={saveTripDates}
+                  className="nav-item"
+                  style={{ marginLeft: "0.5rem" }}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelEditDates}
+                  className="nav-item"
+                >
+                  Cancel
+                </button>
+              </span>
+            ) : (
+              <>
+                {trip.dateStart && trip.dateEnd
+                  ? `${formatDate(trip.dateStart)} → ${formatDate(trip.dateEnd)}`
+                  : trip.dateStart
+                  ? formatDate(trip.dateStart)
+                  : "Dates TBA"}
+                <button
+                  type="button"
+                  className="nav-item"
+                  onClick={startEditDates}
+                  style={{ marginLeft: "0.75rem" }}
+                >
+                  Edit Dates
+                </button>
+              </>
+            )}
+          </p>
+        </header>
+        {/* Checklist always visible */}
+        <section className="checklist-section">
+          <h2>Travel Planning Checklist</h2>
+          {Object.entries(sections).map(([key, items]) => {
+            const isCustom = !BUILT_IN_SECTIONS.includes(key);
+            return (
+              <div key={key} className="checklist-category">
+                <div className="category-header" onClick={() => toggleSection(key)}>
+                  <h3>{formatLabel(key)}</h3>
+                  <div className="category-actions">
+                    <span className="collapse-icon">
+                      {expandedSection[key] ? "▲" : "▼"}
+                    </span>
+                    {isCustom && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenamingSection(key);
+                            setRenameValue(formatLabel(key));
+                            const next = window.prompt(
+                              "Rename section:",
+                              formatLabel(key)
+                            );
+                            if (next && next.trim()) {
+                              setRenameValue(next);
+                              handleRenameSection(key);
+                            }
+                          }}
+                          className="nav-item"
+                        >
+                          ✏️ Rename
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSection(key);
+                          }}
+                          className="nav-item"
+                        >
+                          🗑 Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div
+                  className={`section-content ${
+                    expandedSection[key] ? "expanded" : "collapsed"
+                  }`}
+                >
+                  {expandedSection[key] && (
                     <>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setRenamingSection(key);
-                          setRenameValue(formatLabel(key));
-                          const next = window.prompt(
-                            "Rename section:",
-                            formatLabel(key)
-                          );
-                          if (next && next.trim()) {
-                            setRenameValue(next);
-                            handleRenameSection(key);
+                      {/* === EXPLORE BUTTON === */}
+                      {["hotels", "attractions", "foodDining"].includes(key) && (
+                        <div style={{ marginBottom: "2rem", marginTop: "1rem" }}>
+                          <Link
+                            to={`/explore/${id}?category=${key}`}
+                            className="cta-btn"
+                            style={{ textDecoration: "none" }}
+                          >
+                            {key === "hotels" && "Explore Hotels"}
+                            {key === "attractions" && "Explore Attractions"}
+                            {key === "foodDining" && "Explore Restaurants"}
+                          </Link>
+                        </div>
+                      )}
+                      <div className="details-display">
+                        <h4>Details</h4>
+                        {details[key]?.length > 0 ? (
+                          details[key].map((entry, i) => (
+                            <div key={i} className="details-entry">
+                              <div className="details-preview">
+                                {Object.entries(entry)
+                                  .filter(
+                                    ([k, v]) =>
+                                      k !== "notes" &&
+                                      k !== "pollingEnabled" &&
+                                      v
+                                  )
+                                  .map(([field, value]) => {
+                                    // Use nicer formatting for date/time pairs if present
+                                    if (
+                                      field === "checkIn" &&
+                                      entry.checkIn &&
+                                      entry.checkInTime
+                                    ) {
+                                      return formatDateTime(
+                                        entry.checkIn,
+                                        entry.checkInTime
+                                      );
+                                    }
+                                    if (
+                                      field === "checkOut" &&
+                                      entry.checkOut &&
+                                      entry.checkOutTime
+                                    ) {
+                                      return formatDateTime(
+                                        entry.checkOut,
+                                        entry.checkOutTime
+                                      );
+                                    }
+                                    if (
+                                      field === "departureDate" &&
+                                      entry.departureDate &&
+                                      entry.departureTime
+                                    ) {
+                                      return formatDateTime(
+                                        entry.departureDate,
+                                        entry.departureTime
+                                      );
+                                    }
+                                    if (
+                                      field === "arrivalDate" &&
+                                      entry.arrivalDate &&
+                                      entry.arrivalTime
+                                    ) {
+                                      return formatDateTime(
+                                        entry.arrivalDate,
+                                        entry.arrivalTime
+                                      );
+                                    }
+                                    if (
+                                      field === "pickupDate" &&
+                                      entry.pickupDate &&
+                                      entry.pickupTime
+                                    ) {
+                                      return formatDateTime(
+                                        entry.pickupDate,
+                                        entry.pickupTime
+                                      );
+                                    }
+                                    if (
+                                      field === "dropoffDate" &&
+                                      entry.dropoffDate &&
+                                      entry.dropoffTime
+                                    ) {
+                                      return formatDateTime(
+                                        entry.dropoffDate,
+                                        entry.dropoffTime
+                                      );
+                                    }
+                                    return value;
+                                  })
+                                  .join(" • ")}
+                              </div>
+                              <div className="form-actions">
+                                <button
+                                  className="nav-item"
+                                  onClick={() => toggleEntry(key, i)}
+                                >
+                                  {expandedEntry[key] === i
+                                    ? "Hide Details"
+                                    : "View Details"}
+                                </button>
+                                <button
+                                  className="nav-item"
+                                  onClick={() =>
+                                    setShowForm((p) => ({ ...p, [key]: i }))
+                                  }
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="nav-item"
+                                  onClick={() => handleDeleteDetails(key, i)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                              {expandedEntry[key] === i && (
+                                <>
+                                  {renderFullDetails(entry, formatLabel)}
+                                  {entry.pollingEnabled && (
+                                    <PollBox
+                                      tripId={id}
+                                      sectionKey={key}
+                                      entryIndex={i}
+                                      user={user}
+                                    />
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="details-preview">No details yet.</p>
+                        )}
+                        <button
+                          onClick={() =>
+                            setShowForm((p) => ({ ...p, [key]: "new" }))
                           }
-                        }}
-                        className="nav-item"
-                      >
-                        ✏️ Rename
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteSection(key);
-                        }}
-                        className="nav-item"
-                      >
-                        🗑 Delete
-                      </button>
+                          className="add-btn"
+                        >
+                          + Add Another
+                        </button>
+                      </div>
+                      {showForm[key] !== false && (
+                        <DetailsForm
+                          sectionKey={key}
+                          existing={
+                            showForm[key] === "new"
+                              ? null
+                              : details[key]?.[showForm[key]] || null
+                          }
+                          onSave={(section, formData) =>
+                            handleAddDetails(
+                              section,
+                              formData,
+                              showForm[key] === "new" ? null : showForm[key]
+                            )
+                          }
+                          onCancel={() =>
+                            setShowForm((prev) => ({ ...prev, [key]: false }))
+                          }
+                        />
+                      )}
+                      <ul className="checklist-items">
+                        {items.map((item, i) => (
+                          <li key={i}>
+                            <input type="checkbox" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <AddItemForm
+                        onAdd={(newItem) => addItem(key, newItem)}
+                        placeholder={`Add new ${formatLabel(key)} item`}
+                      />
+                      {/* comments */}
+                      <SectionComments tripId={id} sectionKey={key} user={user} />
                     </>
                   )}
                 </div>
               </div>
-
-              <div
-                className={`section-content ${
-                  expandedSection[key] ? "expanded" : "collapsed"
-                }`}
-              >
-                {expandedSection[key] && (
-                  <>
-                    {/* === EXPLORE BUTTON === */}
-                    {["hotels", "attractions", "foodDining"].includes(key) && (
-                      <div style={{ marginBottom: "2rem", marginTop: "1rem" }}>
-                        <Link
-                          to={`/explore/${id}?category=${key}`}
-                          className="cta-btn"
-                          style={{ textDecoration: "none" }}
-                        >
-                          {key === "hotels" && "Explore Hotels"}
-                          {key === "attractions" && "Explore Attractions"}
-                          {key === "foodDining" && "Explore Restaurants"}
-                        </Link>
-                      </div>
-                    )}
-
-                    <div className="details-display">
-                      <h4>Details</h4>
-                      {details[key]?.length > 0 ? (
-                        details[key].map((entry, i) => (
-                          <div key={i} className="details-entry">
-                            <div className="details-preview">
-                              {Object.entries(entry)
-                                .filter(
-                                  ([k, v]) =>
-                                    k !== "notes" &&
-                                    k !== "pollingEnabled" &&
-                                    v
-                                )
-                                .map(([field, value]) => {
-                                  // Use nicer formatting for date/time pairs if present
-                                  if (
-                                    field === "checkIn" &&
-                                    entry.checkIn &&
-                                    entry.checkInTime
-                                  ) {
-                                    return formatDateTime(
-                                      entry.checkIn,
-                                      entry.checkInTime
-                                    );
-                                  }
-                                  if (
-                                    field === "checkOut" &&
-                                    entry.checkOut &&
-                                    entry.checkOutTime
-                                  ) {
-                                    return formatDateTime(
-                                      entry.checkOut,
-                                      entry.checkOutTime
-                                    );
-                                  }
-                                  if (
-                                    field === "departureDate" &&
-                                    entry.departureDate &&
-                                    entry.departureTime
-                                  ) {
-                                    return formatDateTime(
-                                      entry.departureDate,
-                                      entry.departureTime
-                                    );
-                                  }
-                                  if (
-                                    field === "arrivalDate" &&
-                                    entry.arrivalDate &&
-                                    entry.arrivalTime
-                                  ) {
-                                    return formatDateTime(
-                                      entry.arrivalDate,
-                                      entry.arrivalTime
-                                    );
-                                  }
-                                  if (
-                                    field === "pickupDate" &&
-                                    entry.pickupDate &&
-                                    entry.pickupTime
-                                  ) {
-                                    return formatDateTime(
-                                      entry.pickupDate,
-                                      entry.pickupTime
-                                    );
-                                  }
-                                  if (
-                                    field === "dropoffDate" &&
-                                    entry.dropoffDate &&
-                                    entry.dropoffTime
-                                  ) {
-                                    return formatDateTime(
-                                      entry.dropoffDate,
-                                      entry.dropoffTime
-                                    );
-                                  }
-                                  return value;
-                                })
-                                .join(" • ")}
-                            </div>
-                            <div className="form-actions">
-                              <button
-                                className="nav-item"
-                                onClick={() => toggleEntry(key, i)}
-                              >
-                                {expandedEntry[key] === i
-                                  ? "Hide Details"
-                                  : "View Details"}
-                              </button>
-                              <button
-                                className="nav-item"
-                                onClick={() =>
-                                  setShowForm((p) => ({ ...p, [key]: i }))
-                                }
-                              >
-                                Edit
-                              </button>
-                              <button
-                                className="nav-item"
-                                onClick={() => handleDeleteDetails(key, i)}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                            {expandedEntry[key] === i && (
-                              <>
-                                {renderFullDetails(entry, formatLabel)}
-                                {entry.pollingEnabled && (
-                                  <PollBox
-                                    tripId={id}
-                                    sectionKey={key}
-                                    entryIndex={i}
-                                    user={user}
-                                  />
-                                )}
-                              </>
-                            )}
-                          </div>
-                        ))
-                      ) : (
-                        <p className="details-preview">No details yet.</p>
-                      )}
-                      <button
-                        onClick={() =>
-                          setShowForm((p) => ({ ...p, [key]: "new" }))
-                        }
-                        className="add-btn"
-                      >
-                        + Add Another
-                      </button>
-                    </div>
-
-                    {showForm[key] !== false && (
-                      <DetailsForm
-                        sectionKey={key}
-                        existing={
-                          showForm[key] === "new"
-                            ? null
-                            : details[key]?.[showForm[key]] || null
-                        }
-                        onSave={(section, formData) =>
-                          handleAddDetails(
-                            section,
-                            formData,
-                            showForm[key] === "new" ? null : showForm[key]
-                          )
-                        }
-                        onCancel={() =>
-                          setShowForm((prev) => ({ ...prev, [key]: false }))
-                        }
-                      />
-                    )}
-
-                    <ul className="checklist-items">
-                      {items.map((item, i) => (
-                        <li key={i}>
-                          <input type="checkbox" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <AddItemForm
-                      onAdd={(newItem) => addItem(key, newItem)}
-                      placeholder={`Add new ${formatLabel(key)} item`}
-                    />
-
-                    {/* comments */}
-                    <SectionComments tripId={id} sectionKey={key} user={user} />
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
-
-        <div className="add-section-area">
-          {addingSection ? (
-            <form onSubmit={handleAddSection} className="add-section-form">
-              <input
-                type="text"
-                value={newSectionName}
-                onChange={(e) => setNewSectionName(e.target.value)}
-                placeholder="Enter new section name"
-                autoFocus
-              />
-              <button type="submit" className="cta-btn">
-                Add
-              </button>
+            );
+          })}
+          <div className="add-section-area">
+            {addingSection ? (
+              <form onSubmit={handleAddSection} className="add-section-form">
+                <input
+                  type="text"
+                  value={newSectionName}
+                  onChange={(e) => setNewSectionName(e.target.value)}
+                  placeholder="Enter new section name"
+                  autoFocus
+                />
+                <button type="submit" className="cta-btn">
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAddingSection(false)}
+                  className="nav-item"
+                >
+                  Cancel
+                </button>
+              </form>
+            ) : (
               <button
-                type="button"
-                onClick={() => setAddingSection(false)}
-                className="nav-item"
+                onClick={() => setAddingSection(true)}
+                className="add-btn"
               >
-                Cancel
+                + Add Section
               </button>
-            </form>
-          ) : (
-            <button
-              onClick={() => setAddingSection(true)}
-              className="add-btn"
-            >
-              + Add Section
-            </button>
-          )}
+            )}
+          </div>
+        </section>
+        {/* Floating budget widget */}
+        <BudgetWidget
+          totalBudget={totalBudget}
+          setTotalBudget={setTotalBudget}
+          sectionBudgets={sectionBudgets}
+          setSectionBudgets={setSectionBudgets}
+          sections={sections}
+          totalAllocated={totalAllocated}
+          remainingBudget={remainingBudget}
+          formatLabel={formatLabel}
+        />
+        <footer>
+          <Link to="/trips" className="back-to-trips">
+            ← Back to all trips
+          </Link>
+        </footer>
+      </main>
+      {trip.photoAttribution && (
+        <div className="photo-attribution">
+          <a
+            href={trip.photoAttribution.photoLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Photo by {trip.photoAttribution.photographer}
+          </a>{" "}
+          on{" "}
+          <a
+            href="https://unsplash.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Unsplash
+          </a>
         </div>
-      </section>
+      )}
+    </div>
 
-      {/* Floating budget widget */}
-      <BudgetWidget
-        totalBudget={totalBudget}
-        setTotalBudget={setTotalBudget}
-        sectionBudgets={sectionBudgets}
-        setSectionBudgets={setSectionBudgets}
-        sections={sections}
-        totalAllocated={totalAllocated}
-        remainingBudget={remainingBudget}
-        formatLabel={formatLabel}
-      />
-
-      <footer>
-        <Link to="/trips" className="back-to-trips">
-          ← Back to all trips
-        </Link>
-      </footer>
-    </main>
   );
 }
 
@@ -1029,17 +1051,29 @@ function TimePicker({ value, onChange }) {
   const [time, setTime] = useState(parseTime(value));
 
   useEffect(() => {
-    const h = parseInt(time.h || 0, 10);
-    const m = time.m || "00";
+    setTime(parseTime(value));
+  }, [value]);
+
+  const emit = (next) => {
+    const hNum = parseInt(time.h || 0, 10);
+    const m = next.m || "00";
     const adjustedH =
-      time.period === "PM" && h < 12
-        ? h + 12
-        : time.period === "AM" && h === 12
+      next.period === "PM" && hNum < 12
+        ? hNum + 12
+        : next.period === "AM" && hNum === 12
         ? 0
-        : h;
+        : hNum;
     const formatted = `${adjustedH.toString().padStart(2, "0")}:${m}`;
     onChange(formatted);
-  }, [time, onChange]);
+  };
+
+  const updatePart = (part, newVal) => {
+    setTime((prev) => {
+      const next = { ...prev, [part]: newVal};
+      emit(next);
+      return next;
+    });
+  };
 
   const hours = Array.from({ length: 12 }, (_, i) =>
     (i + 1).toString().padStart(2, "0")
@@ -1052,7 +1086,7 @@ function TimePicker({ value, onChange }) {
     <div className="time-picker">
       <select
         value={time.h}
-        onChange={(e) => setTime((t) => ({ ...t, h: e.target.value }))}
+        onChange={(e) => updatePart("h", e.target.value)}
       >
         <option value="">HH</option>
         {hours.map((h) => (
@@ -1064,7 +1098,7 @@ function TimePicker({ value, onChange }) {
       <span className="time-separator">:</span>
       <select
         value={time.m}
-        onChange={(e) => setTime((t) => ({ ...t, m: e.target.value }))}
+        onChange={(e) => updatePart("m", e.target.value)}
       >
         <option value="">MM</option>
         {minutes.map((m) => (
@@ -1075,7 +1109,7 @@ function TimePicker({ value, onChange }) {
       </select>
       <select
         value={time.period}
-        onChange={(e) => setTime((t) => ({ ...t, period: e.target.value }))}
+        onChange={(e) => updatePart("period", e.target.value)}
       >
         <option value="AM">AM</option>
         <option value="PM">PM</option>

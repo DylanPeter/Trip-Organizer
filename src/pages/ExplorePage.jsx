@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { getTrip } from "../utils/tripstore";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -40,26 +40,52 @@ export default function ExplorePage() {
 
   useEffect(() => {
     if (!cat || !lat || !lon) return;
-    fetchPlaces(true);
-    // eslint-disable-next-line
-  }, [category, tripId]);
 
-  async function fetchPlaces(reset = false) {
+    async function loadInitial() {
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const url = `https://api.geoapify.com/v2/places?categories=${cat.api}&filter=circle:${lon},${lat},${radius}&bias=proximity:${lon},${lat}&limit=10&offset=0&apiKey=${apiKey}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const newPlaces = data.features.map((f) => f.properties);
+        setPlaces(newPlaces);
+        setOffset(10);
+      } catch (err) {
+        console.error(err)
+        setError("Failed to load places. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    loadInitial();
+    // eslint-disable-next-line
+  }, [category, tripId, lat, lon, apiKey]);
+
+  const loadMore = useCallback(async () => {
+    if (!cat || !lat || !lon) return;
+
     setIsLoading(true);
     setError("");
+
     try {
-      const url = `https://api.geoapify.com/v2/places?categories=${cat.api}&filter=circle:${lon},${lat},${radius}&bias=proximity:${lon},${lat}&limit=10&offset=${reset ? 0 : offset}&apiKey=${apiKey}`;
+      const url = `https://api.geoapify.com/v2/places?categories=${cat.api}&filter=circle:${lon},${lat},${radius}&bias=proximity:${lon},${lat}&limit=10&offset=${offset}&apiKey=${apiKey}`;
+
       const res = await fetch(url);
       const data = await res.json();
-      const newPlaces = data.features.map((f) => f.properties);
-      setPlaces((prev) => (reset ? newPlaces : [...prev, ...newPlaces]));
-      setOffset((o) => (reset ? 10 : o + 10));
+      const more = data.features.map((f) => f.properties);
+
+      setPlaces((prev) => [...prev, ...more]);
+      setOffset((prev) => prev + 10);
     } catch (err) {
-      setError("Failed to load places. Please try again.");
+      console.error(err);
+      setError("Failed to load more places.");
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [cat, lat, lon, offset, apiKey]);
 
   if (!trip)
     return (
@@ -88,14 +114,13 @@ export default function ExplorePage() {
 
       {lat && lon && (
         <div style={{ height: "400px", marginBottom: "1rem" }}>
-          <MapContainer center={[lat, lon]} zoom={13} style={{ height: "100%", width: "100%" }}>
+          <MapContainer center={[lat, lon]} zoom={13} style={{ height: "100%", width: "80%", margin: "0 auto" }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               maxZoom={19}
               reuseTiles={true}
               updateWhenIdle={true}
-
             />
             <Marker position={[lat, lon]}>
               <Popup>{trip.location}</Popup>
@@ -132,12 +157,10 @@ export default function ExplorePage() {
       </ul>
 
       {places.length > 0 && !isLoading && (
-        <button className="cta-btn" onClick={() => fetchPlaces(false)}>
+        <button className="cta-btn" onClick={loadMore}>
           Load More
         </button>
       )}
-
-      
     </main>
   );
 }

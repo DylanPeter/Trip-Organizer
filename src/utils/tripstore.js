@@ -100,7 +100,7 @@ export function updateTrip(trip) {
 }
 
 // ---- Upsert helper, now exported ----
-export function setTrip(updated) {
+export function setTripState(updated) {
   const trips = loadTrips();
   const idx = trips.findIndex((t) => t.id === updated.id);
   if (idx === -1) trips.push(updated);
@@ -147,7 +147,7 @@ export function addComment(
   };
 
   trip.sections[sectionKey].comments.push(comment);
-  setTrip(trip);
+  setTripState(trip);
   return comment;
 }
 
@@ -162,6 +162,6 @@ export function deleteComment(tripId, sectionKey, commentId) {
   if (idx === -1) return false;
 
   arr.splice(idx, 1);
-  setTrip(trip);
+  setTripState(trip);
   return true;
 }
