@@ -100,15 +100,248 @@
   display: block;
 }
 
+.profile-form input:focus,
+.profile-form textarea:focus {
+  outline: none;
+  border-color: #294c60;
+  background-color: #ffffff;
+}
+
+.profile-form button {
+  margin-top: 0.5rem;
+  background-color: #001b2e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.profile-form button:hover:not(:disabled) {
+  background-color: #294c60;
+  transform: translateY(-1px);
+}
+
+.profile-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Right column */
+.profile-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* Quick actions (reusing earlier styles) */
+.profile-actions {
+  margin-top: 0;
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.profile-actions h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #001b2e;
+  margin-bottom: 1rem;
+}
+
+.profile-actions-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profile-actions-buttons button {
+  background-color: #294c60;
+  color: white;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.profile-actions-buttons button:hover {
+  background-color: #1d394b;
+  transform: translateY(-1px);
+}
+
+/* Trip lists (you already have most of this; keep or merge) */
+.profile-trips {
+  border-radius: 16px;
+  background-color: #ffffff;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Navbar layout (keeps it horizontal) */
+.navbar-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Nav links row */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.navbar-links a {
+  text-decoration: none;
+  color: inherit; /* optional: makes the link match normal text color */
+}
+
+/* ✅ Force small avatar in navbar */
+header.navbar .nav-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+}
+
+@media (max-width: 800px) {
+  .profile-layout {
+    flex-direction: column;
+  }
+
+  .profile-page {
+    flex: none;
+    width: 100%;
+  }
+
+  .profile-right {
+    width: 100%;
+  }
+}
+
 .profile-form input,
 .profile-form textarea {
   width: 100%;
-  padding: 0.6rem 0.75rem;
+  padding: 0.4rem 0.01rem;       /* matches current UI */
   border: 1px solid #d0d7de;
   border-radius: 6px;
   font-size: 1rem;
   background-color: #f9fafb;
   transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.profile-form textarea {
+  min-height: 60px;/* Overall layout: left profile card + right content */
+.profile-layout {
+  max-width: 1100px;
+  margin: 2.5rem auto 3rem;
+  padding: 0 1.5rem;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+/* Left card */
+.profile-page {
+  flex: 0 0 320px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 2rem 1.75rem 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+/* Avatar block */
+.profile-avatar-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.profile-avatar-large {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #294c60;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-avatar-upload {
+  background-color: #294c60;
+  color: #fff;
+  font-weight: 500;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.profile-avatar-upload:hover {
+  background-color: #1d394b;
+}
+
+/* Name + email */
+.profile-name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #001b2e;
+  margin: 0.5rem 0 0.15rem;
+}
+
+.profile-email {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0 0 1rem;
+}
+
+/* Logout button in card */
+.profile-logout-btn {
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 1.25rem;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.profile-logout-btn:hover {
+  background-color: #992d22;
+  transform: translateY(-1px);
+}
+
+/* Form fields inside card */
+.profile-form {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profile-form label span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+  display: block;
 }
 
 .profile-form input:focus,
@@ -234,4 +467,22 @@ header.navbar .nav-avatar {
   .profile-right {
     width: 100%;
   }
+}
+
+.profile-form input,
+.profile-form textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;       /* matches current UI */
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 1rem;
+  background-color: #f9fafb;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.profile-form textarea {
+  min-height: 120px;
+  padding-right: 1.25rem; 
+}
+  padding-right: 2rem; 
 }
