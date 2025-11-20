@@ -222,6 +222,7 @@ export default function Profile() {
                 value={form.bio || ""}
                 onChange={onChange}
                 placeholder="Tell people about you…"
+                className="bio-input"
               />
             </label>
 
