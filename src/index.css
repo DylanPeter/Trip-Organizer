@@ -1173,7 +1173,7 @@ h1, h2, h3 {
 /* === Floating Budget Widget === */
 .budget-widget {
   position: fixed;
-  top: 100px;
+  top: 120px;
   right: 20px;
   z-index: 9999;
   background: #ffffff;
