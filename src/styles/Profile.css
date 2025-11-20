@@ -484,5 +484,9 @@ header.navbar .nav-avatar {
   min-height: 120px;
   padding-right: 1.25rem; 
 }
-  padding-right: 2rem; 
+
+.bio-input {
+  padding-right: 1rem;
+
+}
 }
