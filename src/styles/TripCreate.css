@@ -1,0 +1,148 @@
+/* Page Layout */
+.trip-create-page {
+  max-width: 700px;
+  margin: 3rem auto;              /* a bit more space from navbar/footer */
+}
+
+/* Title */
+.trip-create-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #001b2e;
+  margin-bottom: 2rem;            /* more space above the card */
+}
+
+/* Card */
+.trip-create-form {
+  background: #ffffff;
+  padding: 3rem 3rem;             /* ⬅️ much more padding all around */
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;                   /* more space between rows */
+  max-width: 600px;       /* NEW: gives your card a real width */
+  margin: 0 auto;         /* NEW: centers the card horizontally */
+  width: 100%;  
+}
+
+/* Label */
+.trip-field span {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.6rem;          /* bigger gap between label + input */
+}
+
+/* Inputs */
+.trip-input {
+  width: 100%;
+  padding: 1rem 0.5rem;           /* ⬅️ big, comfy padding */
+  border: 1px solid #d0d7de;
+  border-radius: 12px;
+  background: #f9fafb;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.trip-input:focus {
+  outline: none;
+  border-color: #294c60;
+  background: #ffffff;
+}
+
+/* Location suggestions (unchanged) */
+.location-field {
+  position: relative;
+}
+
+.location-loading {
+  font-size: 0.85rem;
+  color: #777;
+  margin-top: 0.25rem;
+}
+
+.location-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  z-index: 20;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  list-style: none;
+}
+
+.location-suggestion-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.location-suggestion-item:hover {
+  background: #f3f4f6;
+}
+
+/* ✅ Single definition for date row now */
+.trip-date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.3rem;                    /* more space between Start/End */
+  margin-top: 0.5rem;
+}
+
+/* Buttons */
+.trip-buttons {
+  margin-top: 2.25rem;            /* more breathing room above buttons */
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.trip-btn-primary {
+  background: #d48257;
+  color: white;
+  border: none;
+  padding: 0.85rem 1.9rem;        /* chunkier button */
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.2s ease;
+}
+
+.trip-btn-primary:hover {
+  background: #c26e44;
+  transform: translateY(-2px);
+}
+
+.trip-btn-secondary {
+  background: transparent;
+  border: none;
+  color: #374151;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.trip-btn-secondary:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .trip-create-form {
+    padding: 2rem 1.5rem;
+  }
+
+  .trip-date-row {
+    grid-template-columns: 1fr;
+  }
+}
