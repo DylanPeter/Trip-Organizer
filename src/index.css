@@ -1470,4 +1470,122 @@ h1, h2, h3 {
   padding-right: 20px;
 }
 
+.assign-modal-backdrop {
+  position: fixed;
+  inset: 0;                     /* top:0, right:0, bottom:0, left:0 */
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.assign-modal {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+}
+
+.assign-modal h3 {
+  margin: 0 0 4px;
+}
+
+.assign-modal p {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.assign-modal-list {
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.assign-modal-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.assign-modal-item:hover {
+  background: #f5f5f5;
+}
+
+.assign-modal-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.assign-modal-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.assign-modal-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.assign-modal-role {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.assign-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.assign-control {
+  position: relative;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.assign-circle-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-primary, #3478f6);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.assign-circle-btn:hover {
+  background: var(--color-primary-dark, #2b64c4);
+}
+
+.assign-circle-btn.assigned {
+  background: var(--color-accent-2);
+}
+
+
 
