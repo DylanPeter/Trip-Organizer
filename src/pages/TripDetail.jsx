@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import SectionComments from "../components/SectionComments";
-import { useAuth0 } from "@auth0/auth0-react";
+// ❌ import { useAuth0 } from "@auth0/auth0-react";
 import { useParams, Link } from "react-router-dom";
 import { getTrip, updateTripName, updateTrip } from "../utils/tripstore";
 import TripPhotoHeader from "../components/TripPhotoHeader";
-
+import { useTestUsers } from "../context/TestUserContext";
 
 const sectionsKey = (tripId) => `trip.${tripId}.sections.v1`;
 const detailsKey = (tripId) => `trip.${tripId}.details.v16`;
@@ -21,7 +21,15 @@ const BUILT_IN_SECTIONS = [
 
 export default function TripDetail() {
   const { id } = useParams();
-  const { user } = useAuth0();
+
+  // ❌ const { user } = useAuth0();
+  // ✅ use the active test user instead
+  const { activeUser } = useTestUsers();
+  // Role helpers
+  const role = activeUser?.role || "viewer";
+  const isAdmin = role === "admin";
+  const isContributor = role === "contributor";
+  const isViewer = role === "viewer";
 
   const [trip, setTripState] = useState(() => getTrip(id));
   const [editing, setEditing] = useState(false);
@@ -137,18 +145,50 @@ export default function TripDetail() {
   };
 
   const handleAddDetails = (sectionKey, formData, index = null) => {
-    setDetails((prev) => {
-      const existing = prev[sectionKey] || [];
-      if (index !== null) {
-        const updated = [...existing];
-        updated[index] = formData;
-        return { ...prev, [sectionKey]: updated };
-      }
-      return { ...prev, [sectionKey]: [...existing, formData] };
-    });
-    setShowForm((prev) => ({ ...prev, [sectionKey]: false }));
-    setExpandedSection((prev) => ({ ...prev, [sectionKey]: true }));
+  // Attach metadata: who created it + current status
+  const baseStatus = isAdmin ? "approved" : isContributor ? "pending" : "approved";
+  const wrapped = {
+    ...formData,
+    createdBy: activeUser?.id || activeUser?.email || "unknown",
+    status: formData.status || baseStatus,
   };
+
+  setDetails((prev) => {
+    const existing = prev[sectionKey] || [];
+    if (index !== null) {
+      const updated = [...existing];
+      updated[index] = wrapped;
+      return { ...prev, [sectionKey]: updated };
+    }
+    return { ...prev, [sectionKey]: [...existing, wrapped] };
+  });
+
+  setShowForm((prev) => ({ ...prev, [sectionKey]: false }));
+  setExpandedSection((prev) => ({ ...prev, [sectionKey]: true }));
+};
+
+const handleApproveDetails = (sectionKey, index) => {
+  if (!isAdmin) return;
+  setDetails((prev) => {
+    const existing = prev[sectionKey] || [];
+    const updated = [...existing];
+    if (!updated[index]) return prev;
+    updated[index] = { ...updated[index], status: "approved" };
+    return { ...prev, [sectionKey]: updated };
+  });
+};
+
+const handleRejectDetails = (sectionKey, index) => {
+  if (!isAdmin) return;
+  setDetails((prev) => {
+    const existing = prev[sectionKey] || [];
+    const updated = [...existing];
+    if (!updated[index]) return prev;
+    updated[index] = { ...updated[index], status: "rejected" };
+    return { ...prev, [sectionKey]: updated };
+  });
+};
+
 
   const handleDeleteDetails = (sectionKey, index) => {
     setDetails((prev) => ({
@@ -322,34 +362,37 @@ export default function TripDetail() {
     <div
       className="trip-background-wrapper"
       style={{
-      backgroundImage: trip.useDefaultPhoto
-        ? `url(${DEFAULT_TRIP_PHOTO})`
-        : `url(${trip.photoUrl})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundAttachment: "fixed",
-      minHeight: "100vh",
-      width: "100%",
+        backgroundImage: trip.useDefaultPhoto
+          ? `url(${DEFAULT_TRIP_PHOTO})`
+          : `url(${trip.photoUrl})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        minHeight: "100vh",
+        width: "100%",
       }}
-    > 
+    >
       <main className="detail-main">
         <header className="trip-header">
           {editing ? (
-            <div>
-              <input
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                autoFocus
-              />
-              <button onClick={saveName}>Save</button>
-              <button onClick={cancelEdit}>Cancel</button>
-            </div>
-          ) : (
-            <div>
-              <h1>{trip.name}</h1>
-              <button onClick={startEdit}>Rename</button>
-            </div>
-          )}
+  <div>
+    <input
+      value={nameInput}
+      onChange={(e) => setNameInput(e.target.value)}
+      autoFocus
+    />
+    <button onClick={saveName}>Save</button>
+    <button onClick={cancelEdit}>Cancel</button>
+  </div>
+) : (
+  <div>
+    <h1>{trip.name}</h1>
+    {isAdmin && (
+      <button onClick={startEdit}>Rename</button>
+    )}
+  </div>
+)}
+
           <p>
             {trip.location ? `${trip.location} • ` : ""}
             {editingDates ? (
@@ -388,14 +431,17 @@ export default function TripDetail() {
                   : trip.dateStart
                   ? formatDate(trip.dateStart)
                   : "Dates TBA"}
-                <button
-                  type="button"
-                  className="nav-item"
-                  onClick={startEditDates}
-                  style={{ marginLeft: "0.75rem" }}
-                >
-                  Edit Dates
-                </button>
+                {isAdmin && (
+  <button
+    type="button"
+    className="nav-item"
+    onClick={startEditDates}
+    style={{ marginLeft: "0.75rem" }}
+  >
+    Edit Dates
+  </button>
+)}
+
               </>
             )}
           </p>
@@ -413,7 +459,7 @@ export default function TripDetail() {
                     <span className="collapse-icon">
                       {expandedSection[key] ? "▲" : "▼"}
                     </span>
-                    {isCustom && (
+                    {isCustom && isAdmin && (
                       <>
                         <button
                           onClick={(e) => {
@@ -470,155 +516,196 @@ export default function TripDetail() {
                       <div className="details-display">
                         <h4>Details</h4>
                         {details[key]?.length > 0 ? (
-                          details[key].map((entry, i) => (
-                            <div key={i} className="details-entry">
-                              <div className="details-preview">
-                                {Object.entries(entry)
-                                  .filter(
-                                    ([k, v]) =>
-                                      k !== "notes" &&
-                                      k !== "pollingEnabled" &&
-                                      v
-                                  )
-                                  .map(([field, value]) => {
-                                    // Use nicer formatting for date/time pairs if present
-                                    // Skip standalone time fields that are part of paired date/time fields.
-                                    // These pairs already get formatted together (e.g., "Nov 21, 6:30 AM").
-                                    const pairedTimeFields = new Set([
-                                      "checkInTime",
-                                      "checkOutTime",
-                                      "departureTime",
-                                      "arrivalTime",
-                                      "pickupTime",
-                                      "dropoffTime",
-                                    ]);
+  details[key].map((entry, i) => {
+    const status = entry.status || "approved";
+    const createdBy = entry.createdBy;
+    const isPending = status === "pending";
+    const isRejected = status === "rejected";
 
-                                    if (pairedTimeFields.has(field)) {
-                                      return null; // do not render this field here
-                                    }
+    // Who can see this?
+    const isOwner =
+      createdBy &&
+      (createdBy === (activeUser?.id || activeUser?.email));
 
-                                    if (
-                                      field === "checkIn" &&
-                                      entry.checkIn &&
-                                      entry.checkInTime
-                                    ) {
-                                      return formatDateTime(
-                                        entry.checkIn,
-                                        entry.checkInTime
-                                      );
-                                    }
-                                    if (
-                                      field === "checkOut" &&
-                                      entry.checkOut &&
-                                      entry.checkOutTime
-                                    ) {
-                                      return formatDateTime(
-                                        entry.checkOut,
-                                        entry.checkOutTime
-                                      );
-                                    }
-                                    if (
-                                      field === "departureDate" &&
-                                      entry.departureDate &&
-                                      entry.departureTime
-                                    ) {
-                                      return formatDateTime(
-                                        entry.departureDate,
-                                        entry.departureTime
-                                      );
-                                    }
-                                    if (
-                                      field === "arrivalDate" &&
-                                      entry.arrivalDate &&
-                                      entry.arrivalTime
-                                    ) {
-                                      return formatDateTime(
-                                        entry.arrivalDate,
-                                        entry.arrivalTime
-                                      );
-                                    }
-                                    if (
-                                      field === "pickupDate" &&
-                                      entry.pickupDate &&
-                                      entry.pickupTime
-                                    ) {
-                                      return formatDateTime(
-                                        entry.pickupDate,
-                                        entry.pickupTime
-                                      );
-                                    }
-                                    if (
-                                      field === "dropoffDate" &&
-                                      entry.dropoffDate &&
-                                      entry.dropoffTime
-                                    ) {
-                                      return formatDateTime(
-                                        entry.dropoffDate,
-                                        entry.dropoffTime
-                                      );
-                                    }
-                                    // Format standalone times (reservationTime, pickupTime, etc.)
-                                    if (
-                                      field.toLowerCase().includes("time") &&
-                                      typeof value === "string" &&
-                                      value.includes(":")
-                                    ) {
-                                      return formatTime12(value);
-                                    }
-                                    return value;
-                                  })
-                                  .join(" • ")}
-                              </div>
-                              <div className="form-actions">
-                                <button
-                                  className="nav-item"
-                                  onClick={() => toggleEntry(key, i)}
-                                >
-                                  {expandedEntry[key] === i
-                                    ? "Hide Details"
-                                    : "View Details"}
-                                </button>
-                                <button
-                                  className="nav-item"
-                                  onClick={() =>
-                                    setShowForm((p) => ({ ...p, [key]: i }))
-                                  }
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  className="nav-item"
-                                  onClick={() => handleDeleteDetails(key, i)}
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                              {expandedEntry[key] === i && (
-                                <>
-                                  {renderFullDetails(entry, formatLabel)}
-                                  {entry.pollingEnabled && (
-                                    <PollBox
-                                      tripId={id}
-                                      sectionKey={key}
-                                      entryIndex={i}
-                                      user={user}
-                                    />
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          ))
-                        ) : (
-                          <p className="details-preview">No details yet.</p>
-                        )}
-                        <button
-                          onClick={() =>
-                            setShowForm((p) => ({ ...p, [key]: "new" }))
-                          }
-                          className="add-btn"
-                        >
-                          + Add Another
-                        </button>
+    const visibleToCurrentUser =
+      isAdmin || // admins see everything
+      status === "approved" || // everyone sees approved
+      (isPending && isOwner); // contributor can see their own pending item
+
+    if (!visibleToCurrentUser) return null;
+
+    const canEditEntry =
+      isAdmin || (isPending && isOwner && isContributor);
+    const canDeleteEntry = canEditEntry;
+
+    return (
+      <div key={i} className="details-entry">
+        <div className="details-preview">
+          {/* Status pill */}
+          {isPending && (
+            <span className="details-status-pill details-status-pending">
+              {isAdmin ? "Pending approval" : "Awaiting admin approval"}
+            </span>
+          )}
+          {isRejected && isAdmin && (
+            <span className="details-status-pill details-status-rejected">
+              Rejected
+            </span>
+          )}
+
+          {Object.entries(entry)
+            .filter(
+              ([k, v]) =>
+                !["notes", "pollingEnabled", "status", "createdBy"].includes(k) &&
+                v
+            )
+            .map(([field, value]) => {
+              const pairedTimeFields = new Set([
+                "checkInTime",
+                "checkOutTime",
+                "departureTime",
+                "arrivalTime",
+                "pickupTime",
+                "dropoffTime",
+              ]);
+
+              if (pairedTimeFields.has(field)) return null;
+
+              if (
+                field === "checkIn" &&
+                entry.checkIn &&
+                entry.checkInTime
+              ) {
+                return formatDateTime(entry.checkIn, entry.checkInTime);
+              }
+              if (
+                field === "checkOut" &&
+                entry.checkOut &&
+                entry.checkOutTime
+              ) {
+                return formatDateTime(entry.checkOut, entry.checkOutTime);
+              }
+              if (
+                field === "departureDate" &&
+                entry.departureDate &&
+                entry.departureTime
+              ) {
+                return formatDateTime(
+                  entry.departureDate,
+                  entry.departureTime
+                );
+              }
+              if (
+                field === "arrivalDate" &&
+                entry.arrivalDate &&
+                entry.arrivalTime
+              ) {
+                return formatDateTime(entry.arrivalDate, entry.arrivalTime);
+              }
+              if (
+                field === "pickupDate" &&
+                entry.pickupDate &&
+                entry.pickupTime
+              ) {
+                return formatDateTime(entry.pickupDate, entry.pickupTime);
+              }
+              if (
+                field === "dropoffDate" &&
+                entry.dropoffDate &&
+                entry.dropoffTime
+              ) {
+                return formatDateTime(entry.dropoffDate, entry.dropoffTime);
+              }
+              if (
+                field.toLowerCase().includes("time") &&
+                typeof value === "string" &&
+                value.includes(":")
+              ) {
+                return formatTime12(value);
+              }
+              return value;
+            })
+            .join(" • ")}
+        </div>
+
+        <div className="form-actions">
+          <button
+            className="nav-item"
+            onClick={() => toggleEntry(key, i)}
+          >
+            {expandedEntry[key] === i ? "Hide Details" : "View Details"}
+          </button>
+
+          {canEditEntry && (
+            <button
+              className="nav-item"
+              onClick={() =>
+                setShowForm((p) => ({ ...p, [key]: i }))
+              }
+            >
+              Edit
+            </button>
+          )}
+
+          {canDeleteEntry && (
+            <button
+              className="nav-item"
+              onClick={() => handleDeleteDetails(key, i)}
+            >
+              Delete
+            </button>
+          )}
+
+          {/* Admin-only approve/reject for pending items */}
+          {isAdmin && isPending && (
+            <>
+              <button
+                className="nav-item"
+                onClick={() => handleApproveDetails(key, i)}
+              >
+                ✅ Approve
+              </button>
+              <button
+                className="nav-item"
+                onClick={() => handleRejectDetails(key, i)}
+              >
+                ❌ Reject
+              </button>
+            </>
+          )}
+        </div>
+
+        {expandedEntry[key] === i && (
+          <>
+            {renderFullDetails(entry, formatLabel)}
+            {entry.pollingEnabled && (
+              <PollBox
+                tripId={id}
+                sectionKey={key}
+                entryIndex={i}
+                user={activeUser}
+              />
+            )}
+          </>
+        )}
+      </div>
+    );
+  })
+) : (
+  <p className="details-preview">No details yet.</p>
+)}
+
+                       {(isAdmin || isContributor) && (
+  <button
+    onClick={() =>
+      setShowForm((p) => ({ ...p, [key]: "new" }))
+    }
+    className="add-btn"
+  >
+    + Add Another
+  </button>
+)}
+
                       </div>
                       {showForm[key] !== false && (
                         <DetailsForm
@@ -648,12 +735,20 @@ export default function TripDetail() {
                           </li>
                         ))}
                       </ul>
-                      <AddItemForm
-                        onAdd={(newItem) => addItem(key, newItem)}
-                        placeholder={`Add new ${formatLabel(key)} item`}
-                      />
+                      {isAdmin && (
+  <AddItemForm
+    onAdd={(newItem) => addItem(key, newItem)}
+    placeholder={`Add new ${formatLabel(key)} item`}
+  />
+)}
+
                       {/* comments */}
-                      <SectionComments tripId={id} sectionKey={key} user={user} />
+                      <SectionComments
+                        tripId={id}
+                        sectionKey={key}
+                        // ✅ pass active test user into comments
+                        user={activeUser}
+                      />
                     </>
                   )}
                 </div>
@@ -661,34 +756,23 @@ export default function TripDetail() {
             );
           })}
           <div className="add-section-area">
-            {addingSection ? (
-              <form onSubmit={handleAddSection} className="add-section-form">
-                <input
-                  type="text"
-                  value={newSectionName}
-                  onChange={(e) => setNewSectionName(e.target.value)}
-                  placeholder="Enter new section name"
-                  autoFocus
-                />
-                <button type="submit" className="cta-btn">
-                  Add
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAddingSection(false)}
-                  className="nav-item"
-                >
-                  Cancel
-                </button>
-              </form>
-            ) : (
-              <button
-                onClick={() => setAddingSection(true)}
-                className="add-btn"
-              >
-                + Add Section
-              </button>
-            )}
+            {isAdmin && (
+  <div className="add-section-area">
+    {addingSection ? (
+      <form onSubmit={handleAddSection} className="add-section-form">
+        {/* ... */}
+      </form>
+    ) : (
+      <button
+        onClick={() => setAddingSection(true)}
+        className="add-btn"
+      >
+        + Add Section
+      </button>
+    )}
+  </div>
+)}
+
           </div>
         </section>
         {/* Floating budget widget */}
@@ -701,6 +785,7 @@ export default function TripDetail() {
           totalAllocated={totalAllocated}
           remainingBudget={remainingBudget}
           formatLabel={formatLabel}
+          canEdit={isAdmin}
         />
         <footer>
           <Link to="/trips" className="back-to-trips">
@@ -728,7 +813,6 @@ export default function TripDetail() {
         </div>
       )}
     </div>
-
   );
 }
 
@@ -809,7 +893,8 @@ function BudgetSummary({
                     style={{
                       width: totalBudget
                         ? `${Math.min(
-                            ((sectionBudgets[key] || 0) / totalBudget) * 100,
+                            ((sectionBudgets[key] || 0) / totalBudget) *
+                              100,
                             100
                           )}%`
                         : "0%",
@@ -1085,7 +1170,7 @@ function TimePicker({ value, onChange }) {
     return {
       h: h12.toString().padStart(2, "0"),
       m: m.padStart(2, "0"),
-      period
+      period,
     };
   };
 
@@ -1106,7 +1191,7 @@ function TimePicker({ value, onChange }) {
     setTime(parsed);
   }, [value]);
 
-   // Emit changes AFTER state settles (avoids React warning)
+  // Emit changes AFTER state settles (avoids React warning)
   useEffect(() => {
     const formatted = to24(time);
     if (formatted !== value) {
@@ -1160,10 +1245,12 @@ function TimePicker({ value, onChange }) {
   );
 }
 
-
 /* === PollBox === */
 function PollBox({ tripId, sectionKey, entryIndex, user }) {
-  const userId = user?.sub || "guest";
+  // 🔧 Make this robust for both Auth0 and test users
+  const userId =
+    user?.sub || user?.id || user?.email || "guest";
+
   const pollKey = `trip.${tripId}.polls.${sectionKey}.${entryIndex}`;
   const [votes, setVotes] = useState(() => {
     try {
@@ -1219,6 +1306,7 @@ function BudgetWidget({
   totalAllocated,
   remainingBudget,
   formatLabel,
+  canEdit,
 }) {
   const [open, setOpen] = useState(false);
   const [pinned, setPinned] = useState(true);
@@ -1228,30 +1316,29 @@ function BudgetWidget({
   const [navHeight, setNavHeight] = useState(120); // default fallback
   const bodyRef = React.useRef(null);
 
+  useEffect(() => {
+    // Try to detect your actual nav/header element
+    const nav = document.querySelector("nav, .nav-bar, header");
 
-useEffect(() => {
-  // Try to detect your actual nav/header element
-  const nav = document.querySelector("nav, .nav-bar, header");
+    if (nav) {
+      const rect = nav.getBoundingClientRect();
+      setNavHeight(rect.height + 20); // +20px padding
+    }
+  }, []);
 
-  if (nav) {
-    const rect = nav.getBoundingClientRect();
-    setNavHeight(rect.height + 20); // +20px padding
-  }
-}, []);
+  useEffect(() => {
+    if (open && bodyRef.current) {
+      const contentHeight = bodyRef.current.scrollHeight;
 
-useEffect(() => {
-  if (open && bodyRef.current) {
-    const contentHeight = bodyRef.current.scrollHeight;
+      // Fit widget on screen while showing full content
+      const maxHeight = window.innerHeight - (position.y + 40);
 
-    // Fit widget on screen while showing full content
-    const maxHeight = window.innerHeight - (position.y + 40);
-
-    setSize((prev) => ({
-      ...prev,
-      height: Math.min(contentHeight + 40, maxHeight), // +40 for padding/header
-    }));
-  }
-}, [open, position.y]);
+      setSize((prev) => ({
+        ...prev,
+        height: Math.min(contentHeight + 40, maxHeight), // +40 for padding/header
+      }));
+    }
+  }, [open, position.y]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1290,22 +1377,17 @@ useEffect(() => {
       const maxY = window.innerHeight - 80;
       setPosition({
         x: Math.min(Math.max(10, startPos.x + dx), maxX),
-        y: Math.max(startPos.y + dy, navHeight + 10)
-
-
+        y: Math.max(startPos.y + dy, navHeight + 10),
       });
     };
 
     const onMouseUp = () => {
-  window.removeEventListener("mousemove", onMouseMove);
-  window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
 
-  // Snap at end of drag
-  setPosition((p) => snapToTop(p));
-
-
-};
-
+      // Snap at end of drag
+      setPosition((p) => snapToTop(p));
+    };
 
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
@@ -1327,9 +1409,6 @@ useEffect(() => {
         width: 280, // frozen width
         height: Math.max(220, startSize.height + dy),
       }));
-
-
-
     };
 
     const onMouseUp = () => {
@@ -1361,38 +1440,35 @@ useEffect(() => {
 
   const totalSections = Object.keys(sections).length || 0;
 
+  const SNAP_MARGIN = 60; // px sensitivity near left/right edges
 
-const SNAP_MARGIN = 60; // px sensitivity near left/right edges
+  const snapToTop = (pos) => {
+    if (typeof window === "undefined") return pos;
 
-const snapToTop = (pos) => {
-  if (typeof window === "undefined") return pos;
+    const w = size.width;
+    const screenW = window.innerWidth;
 
-  const w = size.width;
-  const screenW = window.innerWidth;
+    let { x, y } = pos;
 
-  let { x, y } = pos;
+    // Snap LEFT (top-left)
+    if (x < SNAP_MARGIN) {
+      x = 20;
+      y = navHeight + 10;
+    }
 
-  // Snap LEFT (top-left)
-  if (x < SNAP_MARGIN) {
-    x = 20;
-    y = navHeight + 10;
-  }
+    // Snap RIGHT (top-right)
+    if (x > screenW - w - SNAP_MARGIN) {
+      x = screenW - w - 20;
+      y = navHeight + 10;
+    }
 
-  // Snap RIGHT (top-right)
-  if (x > screenW - w - SNAP_MARGIN) {
-    x = screenW - w - 20;
-    y = navHeight + 10;
-  }
+    // Snap vertically only to top safe zone
+    if (y < navHeight + SNAP_MARGIN) {
+      y = navHeight + 10;
+    }
 
-  // Snap vertically only to top safe zone
-  if (y < navHeight + SNAP_MARGIN) {
-    y = navHeight + 10;
-  }
-  
-
-  return { x, y };
-  
-};
+    return { x, y };
+  };
 
   return (
     <div
@@ -1403,6 +1479,7 @@ const snapToTop = (pos) => {
     >
       <div
         className="budget-widget-header"
+        // (you can re-enable dragging by adding onMouseDown={handleHeaderMouseDown})
       >
         <button
           type="button"
@@ -1420,12 +1497,15 @@ const snapToTop = (pos) => {
             <div>
               <span className="budget-label">Total:</span>{" "}
               <input
-                type="number"
-                value={totalBudget}
-                onChange={(e) =>
-                  setTotalBudget(Number(e.target.value) || 0)
-                }
-              />
+  type="number"
+  value={totalBudget}
+  onChange={
+    canEdit
+      ? (e) => setTotalBudget(Number(e.target.value) || 0)
+      : undefined
+  }
+  readOnly={!canEdit}
+/>
             </div>
             <div>
               <span className="budget-label">Allocated:</span>{" "}
@@ -1457,15 +1537,20 @@ const snapToTop = (pos) => {
                   </div>
                   <div className="budget-widget-row-input">
                     <input
-                      type="number"
-                      value={value || ""}
-                      onChange={(e) =>
-                        setSectionBudgets((prev) => ({
-                          ...prev,
-                          [key]: Number(e.target.value) || 0,
-                        }))
-                      }
-                    />
+  type="number"
+  value={value || ""}
+  onChange={
+    canEdit
+      ? (e) =>
+          setSectionBudgets((prev) => ({
+            ...prev,
+            [key]: Number(e.target.value) || 0,
+          }))
+      : undefined
+  }
+  readOnly={!canEdit}
+/>
+
                     <div className="budget-widget-progress">
                       <div
                         className="budget-widget-progress-fill"
@@ -1480,7 +1565,6 @@ const snapToTop = (pos) => {
               );
             })}
           </div>
-
         </div>
       </div>
     </div>
