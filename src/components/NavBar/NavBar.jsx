@@ -1,5 +1,6 @@
 import { NavLink, Link } from "react-router-dom";
 import UserBadge from "../UserBadge";
+import "../../styles/NavBar.css";
 // 👇 NEW: import the switcher
 import TestUserSwitcher from "./TestUserSwitcher";
 

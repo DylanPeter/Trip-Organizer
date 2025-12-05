@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getTrips, createTrip, deleteTrip, renameTrip } from "../utils/tripstore";
+import "../styles/Trips.css"
 
 export default function Trips() {
   const [trips, setTrips] = useState([]);

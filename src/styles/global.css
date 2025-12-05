@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Montserrat:wght@600&display=swap');
+
+:root {
+  --color-primary: #E36F43;
+  --color-secondary: #E6AA9A;
+  --color-accent-1: #173859;
+  --color-accent-2: #759ABC;
+  --color-background: #F7F7F7;
+  --color-text: #130F1A;
+
+  --font-primary: "Open Sans", sans-serif;
+  --font-header: "Montserrat", sans-serif;
+
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --font-size-base: 16px;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-normal);
+  font-size: var(--font-size-base);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-header);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-accent-1);
+}
+
+/* Shared feature card used on landing + trips list */
+.feature-card {
+  background: #fff;
+  border: 1px solid var(--color-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: left;
+  transition: box-shadow 0.25s ease, transform 0.15s ease;
+}
+.feature-card:hover { box-shadow: 0 6px 14px rgba(0,0,0,0.08); transform: translateY(-2px); }
+.feature-card h2 { margin-bottom: 0.5rem; }
+.feature-card p { line-height: 1.5; }
+
+/* Empty State Card (Trips page) */
+.empty-state {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 2px 6px var(--color-shadow);
+}
+
+.empty-state p {
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+/* ===== CTA Button (first definition) ===== */
+.cta-btn {
+  background: var(--color-primary);
+  color: #fff;
+  font-family: var(--font-header);
+  font-weight: var(--font-weight-semibold);
+  font-size: 1rem;
+  padding: 0.9rem 2rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.15s ease;
+}
+.cta-btn:hover { background: var(--color-secondary); transform: translateY(-1px); }
+.cta-btn:active { transform: translateY(0); }
+
+/* ===== Nav links (first nav-item block) ===== */
+.nav-item {
+  text-decoration: none;
+  color: #fff;
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-semibold);
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.nav-item:hover {
+  color: var(--color-secondary);
+  transform: translateY(-1px);
+}
+
+/* Active page indicator */
+.nav-item.active {
+  color: var(--color-secondary);
+  border-bottom: 2px solid var(--color-secondary);
+  padding-bottom: 2px;
+}
+
+/* ===========================
+   Inline action buttons (second nav-item block)
+   =========================== */
+.nav-item {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--color-accent);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 0.25rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-item:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--color-accent-hover);
+}
+
+.rename-btn {
+  color: var(--color-accent);
+}
+
+.delete-btn {
+  color: var(--color-danger-light);
+}
+
+.delete-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+}
+
+/* ===== CTA Button (second definition – overrides some props) ===== */
+.detail-main button {
+  font-family: var(--font-header);
+  font-weight: var(--font-weight-semibold);
+  border-radius: 0.5rem;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.detail-main button:active {
+  transform: scale(0.98);
+}
+
+.cta-btn {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+.cta-btn:hover {
+  background-color: var(--color-secondary);
+}
+
+/* ===========================
+   Footer
+   =========================== */
+.footer {
+  margin-top: 2rem;
+  padding: 1rem 0;
+  text-align: center;
+  font-family: var(--font-primary);
+  font-size: 0.8rem;
+  color: var(--color-accent-1);
+  opacity: 0.8
+}
+.footer-p {
+  color: var(--color-accent-1);
+  font-size: 0.9;
+}
