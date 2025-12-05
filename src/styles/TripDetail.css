@@ -33,7 +33,7 @@
 
 .checklist-category h3 {
   text-transform: capitalize;
-  color: var(--color-accent-2);
+  color: var(--color-accent-1);
   margin-bottom: 0.75rem;
 }
 
@@ -88,7 +88,7 @@
 }
 
 .add-btn {
-  background-color: var(--color-secondary);
+  background-color: var(--color-primary);
   color: white;
   border: none;
   padding: 0.6rem 1.25rem;
@@ -100,7 +100,7 @@
 }
 
 .add-btn:hover {
-  background-color: var(--color-primary);
+  background-color: var(--color-secondary);
 }
 
 .add-btn:active {
@@ -313,7 +313,7 @@
 
 .details-form input:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--color-secondary);
   box-shadow: 0 0 0 3px rgba(227, 111, 67, 0.25);
 }
 
@@ -365,13 +365,13 @@
 }
 
 .add-input:focus {
-  border-color: var(--color-primary);
+  border-color: var(--color-secondary);
   box-shadow: 0 0 0 3px rgba(227, 111, 67, 0.2);
   outline: none;
 }
 
 .add-btn {
-  background-color: var(--color-secondary);
+  background-color: var(--color-primary);
   color: #fff;
   border: none;
   padding: 0.5rem 1rem;
@@ -382,7 +382,7 @@
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 .add-btn:hover {
-  background-color: var(--color-primary);
+  background-color: var(--color-secondary);
 }
 .add-btn:active {
   transform: scale(0.97);
@@ -477,7 +477,7 @@
 
 .details-form .pair-group:focus-within {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-secondary) 15%, transparent);
 }
 
 /* === Date Picker === */
