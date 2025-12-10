@@ -1,8 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
-import "./index.css";
+import "./styles/global.css";
 import { Auth0Provider } from "@auth0/auth0-react";
+
+// 👇 Import the TestUserProvider you created
+import { TestUserProvider } from "./context/TestUserContext";
 
 const domain = import.meta.env.VITE_AUTH0_DOMAIN;
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
@@ -16,7 +19,10 @@ createRoot(document.getElementById("root")).render(
       cacheLocation="localstorage"
       useRefreshTokens
     >
-      <App />
+      {/* 👇 Wrap the entire app with your test user provider */}
+      <TestUserProvider>
+        <App />
+      </TestUserProvider>
     </Auth0Provider>
   </StrictMode>
 );
