@@ -11,6 +11,7 @@ import "../styles/BudgetWidget.css";
 const sectionsKey = (tripId) => `trip.${tripId}.sections.v1`;
 const detailsKey = (tripId) => `trip.${tripId}.details.v16`;
 const budgetKey = (tripId) => `trip.${tripId}.budget.v1`;
+const assigneesKey = (tripId) => `trip.${tripId}.assignees.v1`;
 
 const BUILT_IN_SECTIONS = [
   "hotels",
@@ -26,7 +27,7 @@ export default function TripDetail() {
 
   // ❌ const { user } = useAuth0();
   // ✅ use the active test user instead
-  const { activeUser } = useTestUsers();
+  const { activeUser, users } = useTestUsers();
   // Role helpers
   const role = activeUser?.role || "viewer";
   const isAdmin = role === "admin";
@@ -36,6 +37,8 @@ export default function TripDetail() {
   const [trip, setTripState] = useState(() => getTrip(id));
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState(trip?.name || "");
+  const [assignTargetSection, setAssignTargetSection] = useState(null);
+
 
   // date editing state
   const [editingDates, setEditingDates] = useState(false);
@@ -73,6 +76,7 @@ export default function TripDetail() {
   // Budget management
   const [totalBudget, setTotalBudget] = useState(0);
   const [sectionBudgets, setSectionBudgets] = useState({});
+  const [sectionAssignees, setSectionAssignees] = useState({});
 
   /* --- Load / Save --- */
   useEffect(() => {
@@ -96,10 +100,15 @@ export default function TripDetail() {
         setTotalBudget(parsed.total || 0);
         setSectionBudgets(parsed.sections || {});
       }
+
+      const rawAssignees = localStorage.getItem(assigneesKey(id));
+  if (rawAssignees) {
+    setSectionAssignees(JSON.parse(rawAssignees));
+  }
     } catch {}
   }, [id]);
 
-  useEffect(() => {
+   useEffect(() => {
     if (!id) return;
     try {
       localStorage.setItem(sectionsKey(id), JSON.stringify(sections));
@@ -108,8 +117,13 @@ export default function TripDetail() {
         budgetKey(id),
         JSON.stringify({ total: totalBudget, sections: sectionBudgets })
       );
+      localStorage.setItem(
+        assigneesKey(id),
+        JSON.stringify(sectionAssignees)
+      );
     } catch {}
-  }, [id, sections, details, totalBudget, sectionBudgets]);
+  }, [id, sections, details, totalBudget, sectionBudgets, sectionAssignees]);
+
 
   useEffect(() => {
     const t = getTrip(id);
@@ -254,6 +268,16 @@ const handleRejectDetails = (sectionKey, index) => {
       });
     }
   };
+
+  const handleAssignSection = (sectionKey, userId) => {
+  setSectionAssignees((prev) => ({
+    ...prev,
+    [sectionKey]: userId || "", // empty string = unassigned
+  }));
+  setAssignTargetSection(null);
+};
+
+
 
   /* --- Trip Name --- */
   const startEdit = () => setEditing(true);
@@ -453,47 +477,87 @@ const handleRejectDetails = (sectionKey, index) => {
           <h2>Travel Planning Checklist</h2>
           {Object.entries(sections).map(([key, items]) => {
             const isCustom = !BUILT_IN_SECTIONS.includes(key);
+            const assigneeId = sectionAssignees[key];
+const assigneeUser =
+  assigneeId &&
+  (users || []).find(
+    (u) => u.id === assigneeId || u.email === assigneeId
+  );
+
             return (
               <div key={key} className="checklist-category">
-                <div className="category-header" onClick={() => toggleSection(key)}>
-                  <h3>{formatLabel(key)}</h3>
-                  <div className="category-actions">
-                    <span className="collapse-icon">
-                      {expandedSection[key] ? "▲" : "▼"}
-                    </span>
-                    {isCustom && isAdmin && (
-                      <>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setRenamingSection(key);
-                            setRenameValue(formatLabel(key));
-                            const next = window.prompt(
-                              "Rename section:",
-                              formatLabel(key)
-                            );
-                            if (next && next.trim()) {
-                              setRenameValue(next);
-                              handleRenameSection(key);
-                            }
-                          }}
-                          className="nav-item"
-                        >
-                          ✏️ Rename
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteSection(key);
-                          }}
-                          className="nav-item"
-                        >
-                          🗑 Delete
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                      <div className="category-header" onClick={() => toggleSection(key)}>
+        <div className="category-header-main">
+          <h3>{formatLabel(key)}</h3>
+
+          {/* Section-level assignee pill (shows even when collapsed) */}
+          {assigneeUser && (
+            <span className="section-assignee-pill">
+              Assigned to: {assigneeUser.name}
+            </span>
+          )}
+        </div>
+
+        <div className="category-actions">
+          {/* Assign button FIRST (left of arrow) */}
+         {isAdmin && (
+  <div className="assign-control">
+    <button
+      type="button"
+      className={`assign-circle-btn ${assigneeUser ? "assigned" : ""}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        setAssignTargetSection(key); // open modal for this section
+      }}
+    >
+      {assigneeUser ? "✎" : "+"}
+    </button>
+  </div>
+)}
+
+
+
+          {/* Collapse arrow LAST (right side) */}
+          <span className="collapse-icon">
+            {expandedSection[key] ? "▲" : "▼"}
+          </span>
+
+          {/* Rename / delete for custom sections */}
+          {isCustom && isAdmin && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setRenamingSection(key);
+                  setRenameValue(formatLabel(key));
+                  const next = window.prompt(
+                    "Rename section:",
+                    formatLabel(key)
+                  );
+                  if (next && next.trim()) {
+                    setRenameValue(next);
+                    handleRenameSection(key);
+                  }
+                }}
+                className="nav-item"
+              >
+                ✏️ Rename
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteSection(key);
+                }}
+                className="nav-item"
+              >
+                🗑 Delete
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+
                 <div
                   className={`section-content ${
                     expandedSection[key] ? "expanded" : "collapsed"
@@ -530,9 +594,9 @@ const handleRejectDetails = (sectionKey, index) => {
       (createdBy === (activeUser?.id || activeUser?.email));
 
     const visibleToCurrentUser =
-      isAdmin || // admins see everything
-      status === "approved" || // everyone sees approved
-      (isPending && isOwner); // contributor can see their own pending item
+      isAdmin ||
+      status === "approved" ||
+      (isPending && isOwner);
 
     if (!visibleToCurrentUser) return null;
 
@@ -540,10 +604,13 @@ const handleRejectDetails = (sectionKey, index) => {
       isAdmin || (isPending && isOwner && isContributor);
     const canDeleteEntry = canEditEntry;
 
+    // TEMP: force assign UI on so you can see it
+    const canAssignEntry = true;
+
     return (
       <div key={i} className="details-entry">
         <div className="details-preview">
-          {/* Status pill */}
+          {/* Status pills */}
           {isPending && (
             <span className="details-status-pill details-status-pending">
               {isAdmin ? "Pending approval" : "Awaiting admin approval"}
@@ -554,12 +621,17 @@ const handleRejectDetails = (sectionKey, index) => {
               Rejected
             </span>
           )}
-
+          {/* Summary line */}
           {Object.entries(entry)
             .filter(
               ([k, v]) =>
-                !["notes", "pollingEnabled", "status", "createdBy"].includes(k) &&
-                v
+                ![
+                  "notes",
+                  "pollingEnabled",
+                  "status",
+                  "createdBy",
+                  "assignedTo",
+                ].includes(k) && v
             )
             .map(([field, value]) => {
               const pairedTimeFields = new Set([
@@ -602,21 +674,30 @@ const handleRejectDetails = (sectionKey, index) => {
                 entry.arrivalDate &&
                 entry.arrivalTime
               ) {
-                return formatDateTime(entry.arrivalDate, entry.arrivalTime);
+                return formatDateTime(
+                  entry.arrivalDate,
+                  entry.arrivalTime
+                );
               }
               if (
                 field === "pickupDate" &&
                 entry.pickupDate &&
                 entry.pickupTime
               ) {
-                return formatDateTime(entry.pickupDate, entry.pickupTime);
+                return formatDateTime(
+                  entry.pickupDate,
+                  entry.pickupTime
+                );
               }
               if (
                 field === "dropoffDate" &&
                 entry.dropoffDate &&
                 entry.dropoffTime
               ) {
-                return formatDateTime(entry.dropoffDate, entry.dropoffTime);
+                return formatDateTime(
+                  entry.dropoffDate,
+                  entry.dropoffTime
+                );
               }
               if (
                 field.toLowerCase().includes("time") &&
@@ -658,7 +739,6 @@ const handleRejectDetails = (sectionKey, index) => {
             </button>
           )}
 
-          {/* Admin-only approve/reject for pending items */}
           {isAdmin && isPending && (
             <>
               <button
@@ -697,6 +777,7 @@ const handleRejectDetails = (sectionKey, index) => {
   <p className="details-preview">No details yet.</p>
 )}
 
+
                        {(isAdmin || isContributor) && (
   <button
     onClick={() =>
@@ -711,23 +792,25 @@ const handleRejectDetails = (sectionKey, index) => {
                       </div>
                       {showForm[key] !== false && (
                         <DetailsForm
-                          sectionKey={key}
-                          existing={
-                            showForm[key] === "new"
-                              ? null
-                              : details[key]?.[showForm[key]] || null
-                          }
-                          onSave={(section, formData) =>
-                            handleAddDetails(
-                              section,
-                              formData,
-                              showForm[key] === "new" ? null : showForm[key]
-                            )
-                          }
-                          onCancel={() =>
-                            setShowForm((prev) => ({ ...prev, [key]: false }))
-                          }
-                        />
+  sectionKey={key}
+  existing={
+    showForm[key] === "new"
+      ? null
+      : details[key]?.[showForm[key]] || null
+  }
+  onSave={(section, formData) =>
+    handleAddDetails(
+      section,
+      formData,
+      showForm[key] === "new" ? null : showForm[key]
+    )
+  }
+  onCancel={() =>
+    setShowForm((prev) => ({ ...prev, [key]: false }))
+  }
+  users={users}   // 👈 NEW
+/>
+
                       )}
                       <ul className="checklist-items">
                         {items.map((item, i) => (
@@ -789,12 +872,71 @@ const handleRejectDetails = (sectionKey, index) => {
           formatLabel={formatLabel}
           canEdit={isAdmin}
         />
-        <footer>
-          <Link to="/trips" className="back-to-trips">
-            ← Back to all trips
-          </Link>
-        </footer>
+              <footer>
+        <Link to="/trips" className="back-to-trips">
+          ← Back to all trips
+        </Link>
+      </footer>
+
+      {/* === Assign Section Modal === */}
+      {assignTargetSection && (
+        <div
+          className="assign-modal-backdrop"
+          onClick={() => setAssignTargetSection(null)}
+        >
+          <div
+            className="assign-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>
+              Assign {formatLabel(assignTargetSection)}
+            </h3>
+            <p>Select who should own this section.</p>
+
+            <div className="assign-modal-list">
+              {(users || []).map((u) => (
+                <button
+                  key={u.id}
+                  type="button"
+                  className="assign-modal-item"
+                  onClick={() => handleAssignSection(assignTargetSection, u.id)}
+                >
+                  <div className="assign-modal-avatar">
+                    {u.name?.[0] || "?"}
+                  </div>
+                  <div className="assign-modal-text">
+                    <div className="assign-modal-name">{u.name}</div>
+                    {u.role && (
+                      <div className="assign-modal-role">
+                        {u.role}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="assign-modal-actions">
+              <button
+                type="button"
+                className="nav-item"
+                onClick={() => handleAssignSection(assignTargetSection, "")}
+              >
+                Clear assignment
+              </button>
+              <button
+                type="button"
+                className="cta-btn"
+                onClick={() => setAssignTargetSection(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </main>
+      
       {trip.photoAttribution && (
         <div className="photo-attribution">
           <a
@@ -814,7 +956,7 @@ const handleRejectDetails = (sectionKey, index) => {
           </a>
         </div>
       )}
-    </div>
+    </div> 
   );
 }
 
@@ -929,69 +1071,70 @@ function BudgetSummary({
 }
 
 /* === DetailsForm === */
-function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
+function DetailsForm({ sectionKey, existing, onSave, onCancel, users }) {
   const formatLabel = (str) =>
     str.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim();
 
-  const getInitialState = () => {
-    switch (sectionKey) {
-      case "hotels":
-        return {
-          hotelName: "",
-          location: "",
-          checkIn: "",
-          checkInTime: "",
-          checkOut: "",
-          checkOutTime: "",
-          notes: "",
-          pollingEnabled: false,
-        };
-      case "airTravel":
-        return {
-          airline: "",
-          flightNumber: "",
-          departureDate: "",
-          departureTime: "",
-          arrivalDate: "",
-          arrivalTime: "",
-          notes: "",
-          pollingEnabled: false,
-        };
-      case "groundTransit":
-        return {
-          provider: "",
-          type: "",
-          pickupLocation: "",
-          dropoffLocation: "",
-          pickupDate: "",
-          pickupTime: "",
-          dropoffDate: "",
-          dropoffTime: "",
-          notes: "",
-          pollingEnabled: false,
-        };
-      case "attractions":
-        return {
-          attractionName: "",
-          location: "",
-          date: "",
-          notes: "",
-          pollingEnabled: false,
-        };
-      case "foodDining":
-        return {
-          restaurantName: "",
-          location: "",
-          reservationTime: "",
-          notes: "",
-          pollingEnabled: false,
-        };
-      case "packList":
-        return { notes: "", pollingEnabled: false };
-      default:
-        return { notes: "", pollingEnabled: false };
-    }
-  };
+ const getInitialState = () => {
+  switch (sectionKey) {
+    case "hotels":
+      return {
+        hotelName: "",
+        location: "",
+        checkIn: "",
+        checkInTime: "",
+        checkOut: "",
+        checkOutTime: "",
+        notes: "",
+        pollingEnabled: false,
+      };
+    case "airTravel":
+      return {
+        airline: "",
+        flightNumber: "",
+        departureDate: "",
+        departureTime: "",
+        arrivalDate: "",
+        arrivalTime: "",
+        notes: "",
+        pollingEnabled: false,
+      };
+    case "groundTransit":
+      return {
+        provider: "",
+        type: "",
+        pickupLocation: "",
+        dropoffLocation: "",
+        pickupDate: "",
+        pickupTime: "",
+        dropoffDate: "",
+        dropoffTime: "",
+        notes: "",
+        pollingEnabled: false,
+      };
+    case "attractions":
+      return {
+        attractionName: "",
+        location: "",
+        date: "",
+        notes: "",
+        pollingEnabled: false,
+      };
+    case "foodDining":
+      return {
+        restaurantName: "",
+        location: "",
+        reservationTime: "",
+        notes: "",
+        pollingEnabled: false,
+      };
+    case "packList":
+    default:
+      return { notes: ""};
+  }
+};
+
+
 
   const [formData, setFormData] = useState(existing || getInitialState());
   const [error, setError] = useState("");
@@ -1048,7 +1191,7 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel }) {
       <h4>{existing ? "Edit Details" : "Add Details"}</h4>
 
       {Object.keys(formData).map((f) => {
-        if (f === "notes" || f === "pollingEnabled") return null;
+        if (f === "notes" || f === "pollingEnabled" || f === "assignedTo") return null;
         if (isPairedTimeField(f)) return null;
 
         for (const group of pairedFields[sectionKey] || []) {
