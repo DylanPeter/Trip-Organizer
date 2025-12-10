@@ -1,0 +1,51 @@
+/* ===== NavBar Styling ===== */
+.navbar {
+  background: var(--color-accent-1);
+  color: #fff;
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.navbar-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Brand */
+.navbar-logo {
+  font-family: var(--font-header);
+  font-weight: var(--font-weight-semibold);
+  font-size: 1.4rem;
+  text-decoration: none;
+}
+.brand-primary {
+  color: var(--color-secondary);
+}
+.brand-secondary {
+  color: #fff;
+}
+
+/* Nav links container (links themselves use .nav-item from globals) */
+.navbar-links {
+  display: flex;
+  gap: 1.5rem;
+}
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+  .navbar-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .navbar-links {
+    margin-top: 0.75rem;
+    gap: 1rem;
+  }
+}

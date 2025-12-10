@@ -5,6 +5,8 @@ import { useParams, Link } from "react-router-dom";
 import { getTrip, updateTripName, updateTrip } from "../utils/tripstore";
 import TripPhotoHeader from "../components/TripPhotoHeader";
 import { useTestUsers } from "../context/TestUserContext";
+import "../styles/TripDetail.css";
+import "../styles/BudgetWidget.css";
 
 const sectionsKey = (tripId) => `trip.${tripId}.sections.v1`;
 const detailsKey = (tripId) => `trip.${tripId}.details.v16`;
