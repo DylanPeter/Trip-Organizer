@@ -243,11 +243,11 @@ export default function Profile() {
               >
                 Create New Trip
               </button>
-              <button
+              {/* <button
                 onClick={() => (window.location.href = "/trips")}
               >
                 View All Trips
-              </button>
+              </button> */}
             </div>
           </div>
 
