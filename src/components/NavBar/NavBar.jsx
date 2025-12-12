@@ -24,12 +24,12 @@ export default function NavBar() {
             Trips
           </NavLink>
 
-          <NavLink
+          {/* <NavLink
             to="/profile"
             className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
           >
             Profile
-          </NavLink>
+          </NavLink> */}
 
           {/* 👇 Test user dropdown for collaboration testing */}
           <TestUserSwitcher />

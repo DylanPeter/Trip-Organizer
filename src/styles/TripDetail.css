@@ -2,9 +2,11 @@
   max-width: 700px;
   margin: 2rem auto;
   padding: 2rem;
-  background-color: white;
+  /* background-color: white; */
   border-radius: 1rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background-color: rgba(255, 255, 255, 0.85); /* <— control transparency here */
+  backdrop-filter: blur(4px);                  /* optional: classy glass effect */
 }
 
 .trip-header {
@@ -29,11 +31,12 @@
   background-color: white;
   border: 1px solid #e2dfe9;
   border-radius: 0.75rem;
+  
 }
 
 .checklist-category h3 {
   text-transform: capitalize;
-  color: var(--color-accent-2);
+  color: var(--color-accent-1);
   margin-bottom: 0.75rem;
 }
 
@@ -59,6 +62,117 @@
   transform: scale(1.2);
   margin-right: 0.5rem;
 }
+
+.checklist-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.check-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delete-check-btn {
+  border: 1px solid #ff8888;
+  color: #6f6969;
+  padding: 0.1rem 0.5rem;
+  font-size: 1.1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.delete-check-btn:hover {
+  background: #ffcccc;
+}
+
+.comments-wrapper {
+  margin-top: 1rem;
+  border-top: 1px solid #ddd;
+  padding-top: 0.75rem;
+}
+
+.comments-toggle {
+  background: none;
+  border: none;
+  color: #0077cc;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.comments-toggle:hover {
+  text-decoration: underline;
+}
+
+/* === Comment Input === */
+.comment-input-box {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 0.75rem;
+  background: #fff;
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  width: 100%;
+  resize: vertical;
+  min-height: 70px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.comment-input-box:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(227, 111, 67, 0.25);
+}
+
+/* === Comment action buttons === */
+.comment-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.comment-cancel-btn {
+  background: #f7f7f7;
+  border: 1px solid var(--color-border, #d1d5db);
+  padding: 0.45rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.comment-cancel-btn:hover {
+  background: #ececec;
+}
+
+.comment-submit-btn {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  padding: 0.45rem 1rem;
+  border-radius: 0.5rem;
+  font-family: var(--font-header);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.comment-submit-btn:hover {
+  background-color: var(--color-secondary);
+}
+
+.comment-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 
 /* === Add Item Form Improvements === */
 .add-item-form {
@@ -88,7 +202,7 @@
 }
 
 .add-btn {
-  background-color: var(--color-secondary);
+  background-color: var(--color-primary);
   color: white;
   border: none;
   padding: 0.6rem 1.25rem;
@@ -100,7 +214,7 @@
 }
 
 .add-btn:hover {
-  background-color: var(--color-primary);
+  background-color: var(--color-secondary);
 }
 
 .add-btn:active {
@@ -248,6 +362,49 @@
   inset: -20px -50px;
 }
 
+/* === Centered Explore Button === */
+.explore-btn-container {
+  text-align: center;
+  margin: 1rem 0 2rem;
+}
+
+.explore-btn {
+  background: var(--color-accent-1);
+  color: #fff;
+  font-family: var(--font-header);
+  font-weight: var(--font-weight-semibold);
+  font-size: 1rem;
+  padding: 0.9rem 2rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.15s ease;
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.explore-btn:hover {
+  background-color: var(--color-accent-2);
+}
+
+/* === Centered Checklist Column === */
+.checklist-container {
+  max-width: 600px; /* sweet spot width */
+  margin: 0 auto; /* centers the column */
+}
+
+/* Make checklist look like a unified card section */
+.checklist-container .checklist-items {
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.checklist-container .add-item-form {
+  margin-top: 1rem;
+}
+
+
 /* ===== Details Display ===== */
 .details-display {
   background-color: #fafbfc;
@@ -274,8 +431,7 @@
 }
 
 .details-preview {
-  font-style: italic;
-  color: var(--color-accent-2);
+  color: var(--color-accent-1);
   font-size: 0.95rem;
   margin-bottom: 0.75rem;
 }
@@ -313,7 +469,7 @@
 
 .details-form input:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--color-secondary);
   box-shadow: 0 0 0 3px rgba(227, 111, 67, 0.25);
 }
 
@@ -343,6 +499,17 @@
   transform: scale(1.1);
 }
 
+/* Make packing list easier to read / larger */
+.checklist-category.packList .checklist-items li {
+  font-size: 1.1rem;
+  padding: 0.6rem 0;
+}
+
+.checklist-category.packList input[type="checkbox"] {
+  transform: scale(1.3);
+  margin-right: 0.5rem;
+}
+
 /* ===== Add Item Form (alternate block) ===== */
 .add-item-form {
   display: flex;
@@ -365,13 +532,13 @@
 }
 
 .add-input:focus {
-  border-color: var(--color-primary);
+  border-color: var(--color-secondary);
   box-shadow: 0 0 0 3px rgba(227, 111, 67, 0.2);
   outline: none;
 }
 
 .add-btn {
-  background-color: var(--color-secondary);
+  background-color: var(--color-primary);
   color: #fff;
   border: none;
   padding: 0.5rem 1rem;
@@ -382,7 +549,7 @@
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 .add-btn:hover {
-  background-color: var(--color-primary);
+  background-color: var(--color-secondary);
 }
 .add-btn:active {
   transform: scale(0.97);
@@ -477,7 +644,7 @@
 
 .details-form .pair-group:focus-within {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-secondary) 15%, transparent);
 }
 
 /* === Date Picker === */
@@ -769,9 +936,176 @@
 }
 
 .assign-circle-btn:hover {
-  background: var(--color-primary-dark, #2b64c4);
+  background: var(--color-secondary);
 }
 
 .assign-circle-btn.assigned {
   background: var(--color-accent-2);
+}
+
+
+/* Overrides and new classes listed below!! For test purposes only! */
+
+/* -----------------------------------------------------------
+   TRIP DETAIL – IMPROVED TYPOGRAPHY & HIERARCHY
+   (All overrides; nothing destructive)
+----------------------------------------------------------- */
+
+/* === Page container === */
+.detail-main {
+  padding: 2.5rem 2rem;
+  max-width: 820px;
+}
+
+/* === Main Checklist Header (H2) === */
+.checklist-section h2 {
+  font-size: 1.9rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  letter-spacing: -0.5px;
+}
+
+/* === Category Card === */
+.checklist-category {
+  padding: 1.25rem 1.5rem;
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* Category title (H3) */
+.checklist-category h3 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--color-accent-1);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+/* Category actions group */
+.category-actions button {
+  font-size: 0.9rem !important;
+}
+
+/* === Details Panel === */
+.details-display {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background: #fafafa;
+  border-color: rgba(0,0,0,0.08);
+}
+
+/* “Details” header */
+.details-display h4 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: -0.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-accent-1);
+  text-align: center;
+  width: 100%;
+}
+
+/* Preview line */
+.details-preview {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--color-accent-1);
+  margin-bottom: 1rem;
+  letter-spacing: 0.2px;
+}
+
+.details-entry {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.25rem;
+}
+
+/* Container for preview + actions in one row */
+.details-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Make preview stay left */
+.details-preview {
+  flex: 1;
+}
+
+/* Make buttons small and aligned right */
+.details-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.details-actions .nav-item {
+  color: var(--color-accent-2);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  border-radius: 6px;
+}
+
+/* Details rows */
+.details-card {
+  gap: 0.6rem 1rem;
+}
+
+.details-label {
+  font-size: 0.95rem;
+  margin-right: 0.35rem;
+}
+
+.details-value {
+  font-size: 0.95rem;
+}
+
+/* === Checklist Items === */
+.checklist-items li {
+  font-size: 0.92rem;
+  padding: 0.35rem 0;
+}
+
+.check-item-box {
+  transform: scale(1.15);
+}
+
+/* === Add item button === */
+.add-btn {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* === Add Item Input === */
+.add-input {
+  font-size: 0.95rem;
+}
+
+/* === Section spacing === */
+.section-content.expanded {
+  padding-top: 0.5rem;
+}
+
+/* === Poll box === */
+.poll-box {
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.poll-box h5 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* === Assign modal header === */
+.assign-modal h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* === Better collapse icon sizing === */
+.collapse-icon {
+  font-size: 1rem;
+  opacity: 0.75;
 }

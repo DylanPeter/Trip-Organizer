@@ -38,6 +38,7 @@ export default function TripDetail() {
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState(trip?.name || "");
   const [assignTargetSection, setAssignTargetSection] = useState(null);
+  const [budgetOpen, setBudgetOpen] = useState(false);
 
 
   // date editing state
@@ -102,9 +103,9 @@ export default function TripDetail() {
       }
 
       const rawAssignees = localStorage.getItem(assigneesKey(id));
-  if (rawAssignees) {
-    setSectionAssignees(JSON.parse(rawAssignees));
-  }
+      if (rawAssignees) {
+        setSectionAssignees(JSON.parse(rawAssignees));
+      }
     } catch {}
   }, [id]);
 
@@ -140,6 +141,13 @@ export default function TripDetail() {
     setSections((prev) => ({
       ...prev,
       [sectionKey]: [...(prev[sectionKey] || []), item],
+    }));
+  };
+
+  const removeItem = (sectionKey, index) => {
+    setSections((prev) => ({
+      ...prev,
+      [sectionKey]: prev[sectionKey].filter((_, i) => i !== index),
     }));
   };
 
@@ -205,7 +213,6 @@ const handleRejectDetails = (sectionKey, index) => {
   });
 };
 
-
   const handleDeleteDetails = (sectionKey, index) => {
     setDetails((prev) => ({
       ...prev,
@@ -270,14 +277,12 @@ const handleRejectDetails = (sectionKey, index) => {
   };
 
   const handleAssignSection = (sectionKey, userId) => {
-  setSectionAssignees((prev) => ({
-    ...prev,
-    [sectionKey]: userId || "", // empty string = unassigned
-  }));
-  setAssignTargetSection(null);
-};
-
-
+    setSectionAssignees((prev) => ({
+      ...prev,
+      [sectionKey]: userId || "", // empty string = unassigned
+    }));
+    setAssignTargetSection(null);
+  };
 
   /* --- Trip Name --- */
   const startEdit = () => setEditing(true);
@@ -325,7 +330,8 @@ const handleRejectDetails = (sectionKey, index) => {
 
   /* --- Helpers --- */
   const formatLabel = (str) =>
-    str.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim();
+    str.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase()).trim()
+  ;
 
   const formatDate = (str) => {
     if (!str) return "";
@@ -368,13 +374,73 @@ const handleRejectDetails = (sectionKey, index) => {
   const remainingBudget = totalBudget - totalAllocated;
 
   const toggleSection = (key) =>
-    setExpandedSection((p) => ({ ...p, [key]: !p[key] }));
+    setExpandedSection((p) => ({ ...p, [key]: !p[key] 
+  }));
 
   const toggleEntry = (sectionKey, i) =>
     setExpandedEntry((p) => ({
       ...p,
       [sectionKey]: p[sectionKey] === i ? null : i,
-    }));
+  }));
+
+  const getPreviewSummary = (sectionKey, entry) => {
+    switch (sectionKey) {
+      case "hotels":
+        return [
+          entry.hotelName,
+          entry.checkIn && entry.checkOut
+            ? `${formatDate(entry.checkIn)} → ${formatDate(entry.checkOut)}`
+            : entry.checkIn
+            ? `Check-in: ${formatDate(entry.checkIn)}`
+            : null
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+      case "airTravel":
+        return [
+          entry.airline,
+          entry.departureDate && entry.arrivalDate
+            ? `${formatDate(entry.departureDate)} → ${formatDate(entry.arrivalDate)}`
+            : entry.departureDate
+            ? formatDate(entry.departureDate)
+            : null
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+      case "groundTransit":
+        return [
+          entry.provider,
+          entry.pickupDate && entry.dropoffDate
+            ? `${formatDate(entry.pickupDate)} → ${formatDate(entry.dropoffDate)}`
+            : entry.pickupDate
+            ? formatDate(entry.pickupDate)
+            : null
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+      case "attractions":
+        return [
+          entry.attractionName,
+          entry.date ? formatDate(entry.date) : null
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+      case "foodDining":
+        return [
+          entry.restaurantName,
+          entry.reservationTime ? formatTime12(entry.reservationTime) : null
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+      default:
+        return "Details available";
+    }
+  };
 
   if (!trip)
     return (
@@ -382,8 +448,8 @@ const handleRejectDetails = (sectionKey, index) => {
         <h1>Trip not found</h1>
         <Link to="/trips">Back to Trips</Link>
       </main>
-    );
-
+  );
+  
   return (
     <div
       className="trip-background-wrapper"
@@ -398,166 +464,187 @@ const handleRejectDetails = (sectionKey, index) => {
         width: "100%",
       }}
     >
+      {/* Desktop side-tab trigger for Budget Widget */}
+      <button
+        className="budget-tab"
+        onClick={() => setBudgetOpen((o) => !o)}
+        aria-label="Open budget panel"
+      >
+        $
+      </button>
+
+      {/* Floating budget widget */}
+      <BudgetWidget
+        totalBudget={totalBudget}
+        setTotalBudget={setTotalBudget}
+        sectionBudgets={sectionBudgets}
+        setSectionBudgets={setSectionBudgets}
+        sections={sections}
+        totalAllocated={totalAllocated}
+        remainingBudget={remainingBudget}
+        formatLabel={formatLabel}
+        canEdit={isAdmin}
+        open={budgetOpen}
+        setOpen={setBudgetOpen}
+      />
       <main className="detail-main">
         <header className="trip-header">
           {editing ? (
-  <div>
-    <input
-      value={nameInput}
-      onChange={(e) => setNameInput(e.target.value)}
-      autoFocus
-    />
-    <button onClick={saveName}>Save</button>
-    <button onClick={cancelEdit}>Cancel</button>
-  </div>
-) : (
-  <div>
-    <h1>{trip.name}</h1>
-    {isAdmin && (
-      <button onClick={startEdit}>Rename</button>
-    )}
-  </div>
-)}
-
-          <p>
-            {trip.location ? `${trip.location} • ` : ""}
-            {editingDates ? (
-              <span className="edit-dates-container">
-                <input
-                  type="date"
-                  value={startInput}
-                  onChange={(e) => setStartInput(e.target.value)}
-                />
-                <span> → </span>
-                <input
-                  type="date"
-                  value={endInput}
-                  onChange={(e) => setEndInput(e.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={saveTripDates}
-                  className="nav-item"
-                  style={{ marginLeft: "0.5rem" }}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={cancelEditDates}
+            <div>
+              <input
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                autoFocus
+              />
+              <button onClick={saveName}>Save</button>
+              <button onClick={cancelEdit}>Cancel</button>
+            </div>
+          ) : (
+            <div>
+              <h1>{trip.name}</h1>
+              {isAdmin && (
+                <button 
+                  onClick={startEdit}
                   className="nav-item"
                 >
-                  Cancel
+                    Rename
                 </button>
-              </span>
-            ) : (
-              <>
-                {trip.dateStart && trip.dateEnd
-                  ? `${formatDate(trip.dateStart)} → ${formatDate(trip.dateEnd)}`
-                  : trip.dateStart
-                  ? formatDate(trip.dateStart)
-                  : "Dates TBA"}
-                {isAdmin && (
-  <button
-    type="button"
-    className="nav-item"
-    onClick={startEditDates}
-    style={{ marginLeft: "0.75rem" }}
-  >
-    Edit Dates
-  </button>
-)}
-
-              </>
-            )}
-          </p>
+              )}
+            </div>
+          )}
+        <p>
+          {trip.location ? `${trip.location} • ` : ""}
+          {editingDates ? (
+            <span className="edit-dates-container">
+              <input
+                type="date"
+                value={startInput}
+                onChange={(e) => setStartInput(e.target.value)}
+              />
+              <span> → </span>
+              <input
+                type="date"
+                value={endInput}
+                onChange={(e) => setEndInput(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={saveTripDates}
+                className="nav-item"
+                style={{ marginLeft: "0.5rem" }}
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={cancelEditDates}
+                className="nav-item"
+              >
+                Cancel
+              </button>
+            </span>
+          ) : (
+            <>
+              {trip.dateStart && trip.dateEnd
+                ? `${formatDate(trip.dateStart)} → ${formatDate(trip.dateEnd)}`
+                : trip.dateStart
+                ? formatDate(trip.dateStart)
+                : "Dates TBA"}
+                <br />
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="nav-item"
+                  onClick={startEditDates}
+                  style={{ marginLeft: "0.75rem" }}
+                >
+                  Edit Dates
+                </button>
+              )}
+            </>
+          )}
+        </p>
         </header>
         {/* Checklist always visible */}
         <section className="checklist-section">
-          <h2>Travel Planning Checklist</h2>
+          {/* <h2>Travel Planning Checklist</h2> */}
           {Object.entries(sections).map(([key, items]) => {
             const isCustom = !BUILT_IN_SECTIONS.includes(key);
             const assigneeId = sectionAssignees[key];
-const assigneeUser =
-  assigneeId &&
-  (users || []).find(
-    (u) => u.id === assigneeId || u.email === assigneeId
-  );
+            const assigneeUser =
+              assigneeId &&
+              (users || []).find(
+                (u) => u.id === assigneeId || u.email === assigneeId
+              );
 
             return (
-              <div key={key} className="checklist-category">
-                      <div className="category-header" onClick={() => toggleSection(key)}>
-        <div className="category-header-main">
-          <h3>{formatLabel(key)}</h3>
+              <div key={key} className={`checklist-category ${key}`}>
+                <div className="category-header" onClick={() => toggleSection(key)}>
+                  <div className="category-header-main">
+                    <h3>{formatLabel(key)}</h3>
+                    {/* Section-level assignee pill (shows even when collapsed) */}
+                    {assigneeUser && (
+                      <span className="section-assignee-pill">
+                        Assigned to: {assigneeUser.name}
+                      </span>
+                    )}
+                  </div>
+                  <div className="category-actions">
+                    {/* Assign button FIRST (left of arrow) */}
+                    {isAdmin && (
+                        <div className="assign-control">
+                          <button
+                            type="button"
+                            className={`assign-circle-btn ${assigneeUser ? "assigned" : ""}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAssignTargetSection(key); // open modal for this section
+                            }}
+                          >
+                            {assigneeUser ? "✎" : "+"}
+                          </button>
+                        </div>
+                    )}
 
-          {/* Section-level assignee pill (shows even when collapsed) */}
-          {assigneeUser && (
-            <span className="section-assignee-pill">
-              Assigned to: {assigneeUser.name}
-            </span>
-          )}
-        </div>
+                    {/* Collapse arrow LAST (right side) */}
+                    <span className="collapse-icon">
+                      {expandedSection[key] ? "▲" : "▼"}
+                    </span>
 
-        <div className="category-actions">
-          {/* Assign button FIRST (left of arrow) */}
-         {isAdmin && (
-  <div className="assign-control">
-    <button
-      type="button"
-      className={`assign-circle-btn ${assigneeUser ? "assigned" : ""}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        setAssignTargetSection(key); // open modal for this section
-      }}
-    >
-      {assigneeUser ? "✎" : "+"}
-    </button>
-  </div>
-)}
-
-
-
-          {/* Collapse arrow LAST (right side) */}
-          <span className="collapse-icon">
-            {expandedSection[key] ? "▲" : "▼"}
-          </span>
-
-          {/* Rename / delete for custom sections */}
-          {isCustom && isAdmin && (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setRenamingSection(key);
-                  setRenameValue(formatLabel(key));
-                  const next = window.prompt(
-                    "Rename section:",
-                    formatLabel(key)
-                  );
-                  if (next && next.trim()) {
-                    setRenameValue(next);
-                    handleRenameSection(key);
-                  }
-                }}
-                className="nav-item"
-              >
-                ✏️ Rename
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteSection(key);
-                }}
-                className="nav-item"
-              >
-                🗑 Delete
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-
+                    {/* Rename / delete for custom sections */}
+                    {isCustom && isAdmin && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenamingSection(key);
+                            setRenameValue(formatLabel(key));
+                            const next = window.prompt(
+                              "Rename section:",
+                              formatLabel(key)
+                            );
+                            if (next && next.trim()) {
+                              setRenameValue(next);
+                              handleRenameSection(key);
+                            }
+                          }}
+                          className="nav-item"
+                        >
+                          ✏️ Rename
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSection(key);
+                          }}
+                          className="nav-item"
+                        >
+                          🗑 Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
                 <div
                   className={`section-content ${
                     expandedSection[key] ? "expanded" : "collapsed"
@@ -567,10 +654,10 @@ const assigneeUser =
                     <>
                       {/* === EXPLORE BUTTON === */}
                       {["hotels", "attractions", "foodDining"].includes(key) && (
-                        <div style={{ marginBottom: "2rem", marginTop: "1rem" }}>
+                        <div className="explore-btn-container">
                           <Link
                             to={`/explore/${id}?category=${key}`}
-                            className="cta-btn"
+                            className="explore-btn"
                             style={{ textDecoration: "none" }}
                           >
                             {key === "hotels" && "Explore Hotels"}
@@ -579,261 +666,204 @@ const assigneeUser =
                           </Link>
                         </div>
                       )}
-                      <div className="details-display">
-                        <h4>Details</h4>
-                        {details[key]?.length > 0 ? (
-  details[key].map((entry, i) => {
-    const status = entry.status || "approved";
-    const createdBy = entry.createdBy;
-    const isPending = status === "pending";
-    const isRejected = status === "rejected";
-
-    // Who can see this?
-    const isOwner =
-      createdBy &&
-      (createdBy === (activeUser?.id || activeUser?.email));
-
-    const visibleToCurrentUser =
-      isAdmin ||
-      status === "approved" ||
-      (isPending && isOwner);
-
-    if (!visibleToCurrentUser) return null;
-
-    const canEditEntry =
-      isAdmin || (isPending && isOwner && isContributor);
-    const canDeleteEntry = canEditEntry;
-
-    // TEMP: force assign UI on so you can see it
-    const canAssignEntry = true;
-
-    return (
-      <div key={i} className="details-entry">
-        <div className="details-preview">
-          {/* Status pills */}
-          {isPending && (
-            <span className="details-status-pill details-status-pending">
-              {isAdmin ? "Pending approval" : "Awaiting admin approval"}
-            </span>
-          )}
-          {isRejected && isAdmin && (
-            <span className="details-status-pill details-status-rejected">
-              Rejected
-            </span>
-          )}
-          {/* Summary line */}
-          {Object.entries(entry)
-            .filter(
-              ([k, v]) =>
-                ![
-                  "notes",
-                  "pollingEnabled",
-                  "status",
-                  "createdBy",
-                  "assignedTo",
-                ].includes(k) && v
-            )
-            .map(([field, value]) => {
-              const pairedTimeFields = new Set([
-                "checkInTime",
-                "checkOutTime",
-                "departureTime",
-                "arrivalTime",
-                "pickupTime",
-                "dropoffTime",
-              ]);
-
-              if (pairedTimeFields.has(field)) return null;
-
-              if (
-                field === "checkIn" &&
-                entry.checkIn &&
-                entry.checkInTime
-              ) {
-                return formatDateTime(entry.checkIn, entry.checkInTime);
-              }
-              if (
-                field === "checkOut" &&
-                entry.checkOut &&
-                entry.checkOutTime
-              ) {
-                return formatDateTime(entry.checkOut, entry.checkOutTime);
-              }
-              if (
-                field === "departureDate" &&
-                entry.departureDate &&
-                entry.departureTime
-              ) {
-                return formatDateTime(
-                  entry.departureDate,
-                  entry.departureTime
-                );
-              }
-              if (
-                field === "arrivalDate" &&
-                entry.arrivalDate &&
-                entry.arrivalTime
-              ) {
-                return formatDateTime(
-                  entry.arrivalDate,
-                  entry.arrivalTime
-                );
-              }
-              if (
-                field === "pickupDate" &&
-                entry.pickupDate &&
-                entry.pickupTime
-              ) {
-                return formatDateTime(
-                  entry.pickupDate,
-                  entry.pickupTime
-                );
-              }
-              if (
-                field === "dropoffDate" &&
-                entry.dropoffDate &&
-                entry.dropoffTime
-              ) {
-                return formatDateTime(
-                  entry.dropoffDate,
-                  entry.dropoffTime
-                );
-              }
-              if (
-                field.toLowerCase().includes("time") &&
-                typeof value === "string" &&
-                value.includes(":")
-              ) {
-                return formatTime12(value);
-              }
-              return value;
-            })
-            .join(" • ")}
-        </div>
-
-        <div className="form-actions">
-          <button
-            className="nav-item"
-            onClick={() => toggleEntry(key, i)}
-          >
-            {expandedEntry[key] === i ? "Hide Details" : "View Details"}
-          </button>
-
-          {canEditEntry && (
-            <button
-              className="nav-item"
-              onClick={() =>
-                setShowForm((p) => ({ ...p, [key]: i }))
-              }
-            >
-              Edit
-            </button>
-          )}
-
-          {canDeleteEntry && (
-            <button
-              className="nav-item"
-              onClick={() => handleDeleteDetails(key, i)}
-            >
-              Delete
-            </button>
-          )}
-
-          {isAdmin && isPending && (
-            <>
-              <button
-                className="nav-item"
-                onClick={() => handleApproveDetails(key, i)}
-              >
-                ✅ Approve
-              </button>
-              <button
-                className="nav-item"
-                onClick={() => handleRejectDetails(key, i)}
-              >
-                ❌ Reject
-              </button>
-            </>
-          )}
-        </div>
-
-        {expandedEntry[key] === i && (
-          <>
-            {renderFullDetails(entry, formatLabel)}
-            {entry.pollingEnabled && (
-              <PollBox
-                tripId={id}
-                sectionKey={key}
-                entryIndex={i}
-                user={activeUser}
-              />
-            )}
-          </>
-        )}
-      </div>
-    );
-  })
-) : (
-  <p className="details-preview">No details yet.</p>
-)}
-
-
-                       {(isAdmin || isContributor) && (
-  <button
-    onClick={() =>
-      setShowForm((p) => ({ ...p, [key]: "new" }))
-    }
-    className="add-btn"
-  >
-    + Add Another
-  </button>
-)}
-
-                      </div>
-                      {showForm[key] !== false && (
-                        <DetailsForm
-  sectionKey={key}
-  existing={
-    showForm[key] === "new"
-      ? null
-      : details[key]?.[showForm[key]] || null
-  }
-  onSave={(section, formData) =>
-    handleAddDetails(
-      section,
-      formData,
-      showForm[key] === "new" ? null : showForm[key]
-    )
-  }
-  onCancel={() =>
-    setShowForm((prev) => ({ ...prev, [key]: false }))
-  }
-  users={users}   // 👈 NEW
-/>
-
+                      {key !== "packList" && (
+                        <div className="details-display">
+                          <h4>Details</h4>
+                          {details[key]?.length > 0 ? (
+                            details[key].map((entry, i) => {
+                            const status = entry.status || "approved";
+                            const createdBy = entry.createdBy;
+                            const isPending = status === "pending";
+                            const isRejected = status === "rejected";
+                        
+                            // Who can see this?
+                            const isOwner =
+                              createdBy &&
+                              (createdBy === (activeUser?.id || activeUser?.email))
+                            ;
+                        
+                            const visibleToCurrentUser =
+                              isAdmin ||
+                              status === "approved" ||
+                              (isPending && isOwner)
+                            ;
+                        
+                            if (!visibleToCurrentUser) return null;
+                        
+                            const canEditEntry =
+                              isAdmin || (isPending && isOwner && isContributor)
+                            ;
+                            const canDeleteEntry = canEditEntry;
+                        
+                            // TEMP: force assign UI on so you can see it
+                            const canAssignEntry = true;
+                        
+                            return (
+                              <div key={i} className="details-entry">
+                                <div className="details-row-top">
+                                  <div className="details-preview">
+                                    {/* Status pills */}
+                                    {isPending && (
+                                      <span className="details-status-pill details-status-pending">
+                                        {isAdmin ? "Pending approval... " : "Awaiting admin approval... "}
+                                      </span>
+                                    )}
+                                    {isRejected && isAdmin && (
+                                      <span className="details-status-pill details-status-rejected">
+                                        Rejected
+                                      </span>
+                                    )}
+                                    {/* Summary line */}
+                                    {getPreviewSummary(key, entry) || "Details available"}
+                                  </div>
+                                  <div className="details-actions">
+                                    <button
+                                      className="nav-item"
+                                      onClick={() => toggleEntry(key, i)}
+                                    >
+                                      {expandedEntry[key] === i ? "Hide Details" : "View Details"}
+                                    </button>
+                                    {canEditEntry && (
+                                      <button
+                                        className="nav-item"
+                                        onClick={() =>
+                                          setShowForm((p) => ({ ...p, [key]: i }))
+                                        }
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
+                                    {canDeleteEntry && (
+                                      <button
+                                        className="nav-item"
+                                        onClick={() => handleDeleteDetails(key, i)}
+                                      >
+                                        Delete
+                                      </button>
+                                    )}
+                                    {isAdmin && isPending && (
+                                      <>
+                                        <button
+                                          className="nav-item"
+                                          onClick={() => handleApproveDetails(key, i)}
+                                        >
+                                          ✅ Approve
+                                        </button>
+                                        <button
+                                          className="nav-item"
+                                          onClick={() => handleRejectDetails(key, i)}
+                                        >
+                                          ❌ Reject
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                                {expandedEntry[key] === i && (
+                                  <>
+                                    {renderFullDetails(entry, formatLabel)}
+                                    {entry.pollingEnabled && (
+                                      <PollBox
+                                        tripId={id}
+                                        sectionKey={key}
+                                        entryIndex={i}
+                                        user={activeUser}
+                                      />
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })
+                          ) : (
+                            <p className="details-preview">{formatLabel(key)} details appear here when you add them...</p>
+                          )}
+                          {(isAdmin || isContributor) && (
+                            <button
+                              onClick={() =>
+                                setShowForm((p) => ({ ...p, [key]: "new" }))
+                              }
+                              className="add-btn"
+                            >
+                              + Add {formatLabel(key)} Information
+                            </button>
+                          )}
+                        </div>
                       )}
-                      <ul className="checklist-items">
-                        {items.map((item, i) => (
-                          <li key={i}>
-                            <input type="checkbox" />
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      {isAdmin && (
-  <AddItemForm
-    onAdd={(newItem) => addItem(key, newItem)}
-    placeholder={`Add new ${formatLabel(key)} item`}
-  />
-)}
+                      {key !== "packList" && 
+                        showForm[key] !== undefined && showForm[key] !== false && (
+                          <DetailsForm
+                            sectionKey={key}
+                            existing={
+                              showForm[key] === "new"
+                                ? null
+                                : details[key]?.[showForm[key]] || null
+                            }
+                            onSave={(section, formData) =>
+                              handleAddDetails(
+                                section,
+                                formData,
+                                showForm[key] === "new" ? null : showForm[key]
+                              )
+                            }
+                            onCancel={() =>
+                              setShowForm((prev) => ({ ...prev, [key]: false }))
+                            }
+                            users={users}   // 👈 NEW
+                          />
+                        )
+                      }
+                      <div className="checklist-container">
+                        <ul className="checklist-items">
+                          {items.map((item, i) => (
+                            <li key={i} className="checklist-row">
+                              <div className="check-content">
+                                <input type="checkbox" />
+                                <span>{item}</span>
+                              </div>
+                              {(isAdmin || isContributor) && (
+                                <button
+                                  className="delete-check-btn"
+                                  onClick={() => removeItem(key, i)}
+                                  title="Remove item"
+                                >
+                                  –
+                                </button>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                        {isAdmin && (
+                          <AddItemForm
+                            onAdd={(newItem) => addItem(key, newItem)}
+                            placeholder={`Add new ${formatLabel(key)} item`}
+                          />
+                        )}
+                      </div>
 
                       {/* comments */}
-                      <SectionComments
-                        tripId={id}
-                        sectionKey={key}
-                        // ✅ pass active test user into comments
-                        user={activeUser}
-                      />
+                      <div className="comments-wrapper">
+                        <button
+                          className="comments-toggle"
+                          onClick={() =>
+                            setExpandedSection((prev) => ({
+                              ...prev,
+                              [`comments-${key}`]: !prev[`comments-${key}`],
+                            }))
+                          }
+                        >
+                          {expandedSection[`comments-${key}`] ? "Hide Comments" : "Show Comments"}
+                        </button>
+
+                        {expandedSection[`comments-${key}`] && (
+                          <SectionComments
+                            tripId={id}
+                            sectionKey={key}
+                            user={activeUser}
+                          />
+                        )}
+                      </div>
+
                     </>
                   )}
                 </div>
@@ -842,99 +872,86 @@ const assigneeUser =
           })}
           <div className="add-section-area">
             {isAdmin && (
-  <div className="add-section-area">
-    {addingSection ? (
-      <form onSubmit={handleAddSection} className="add-section-form">
-        {/* ... */}
-      </form>
-    ) : (
-      <button
-        onClick={() => setAddingSection(true)}
-        className="add-btn"
-      >
-        + Add Section
-      </button>
-    )}
-  </div>
-)}
-
+              <div className="add-section-area">
+                {addingSection ? (
+                  <form onSubmit={handleAddSection} className="add-section-form">
+                    {/* ... */}
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setAddingSection(true)}
+                    className="add-btn"
+                  >
+                    + Add Section
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </section>
-        {/* Floating budget widget */}
-        <BudgetWidget
-          totalBudget={totalBudget}
-          setTotalBudget={setTotalBudget}
-          sectionBudgets={sectionBudgets}
-          setSectionBudgets={setSectionBudgets}
-          sections={sections}
-          totalAllocated={totalAllocated}
-          remainingBudget={remainingBudget}
-          formatLabel={formatLabel}
-          canEdit={isAdmin}
-        />
-              <footer>
-        <Link to="/trips" className="back-to-trips">
-          ← Back to all trips
-        </Link>
-      </footer>
+        <footer>
+          <Link to="/trips" className="back-to-trips">
+            ← Back to all trips
+          </Link>
+        </footer>
 
-      {/* === Assign Section Modal === */}
-      {assignTargetSection && (
-        <div
-          className="assign-modal-backdrop"
-          onClick={() => setAssignTargetSection(null)}
-        >
+        {/* === Assign Section Modal === */}
+        {assignTargetSection && (
           <div
-            className="assign-modal"
-            onClick={(e) => e.stopPropagation()}
+            className="assign-modal-backdrop"
+            onClick={() => setAssignTargetSection(null)}
           >
-            <h3>
-              Assign {formatLabel(assignTargetSection)}
-            </h3>
-            <p>Select who should own this section.</p>
+            <div
+              className="assign-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3>
+                Assign {formatLabel(assignTargetSection)}
+              </h3>
+              <p>Select who should own this section.</p>
 
-            <div className="assign-modal-list">
-              {(users || []).map((u) => (
+              <div className="assign-modal-list">
+                {(users || []).map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    className="assign-modal-item"
+                    onClick={() => handleAssignSection(assignTargetSection, u.id)}
+                  >
+                    <div className="assign-modal-avatar">
+                      {u.name?.[0] || "?"}
+                    </div>
+                    <div className="assign-modal-text">
+                      <div className="assign-modal-name">{u.name}</div>
+                      {u.role && (
+                        <div className="assign-modal-role">
+                          {u.role}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="assign-modal-actions">
                 <button
-                  key={u.id}
                   type="button"
-                  className="assign-modal-item"
-                  onClick={() => handleAssignSection(assignTargetSection, u.id)}
+                  className="nav-item"
+                  onClick={() => handleAssignSection(assignTargetSection, "")}
                 >
-                  <div className="assign-modal-avatar">
-                    {u.name?.[0] || "?"}
-                  </div>
-                  <div className="assign-modal-text">
-                    <div className="assign-modal-name">{u.name}</div>
-                    {u.role && (
-                      <div className="assign-modal-role">
-                        {u.role}
-                      </div>
-                    )}
-                  </div>
+                  Clear assignment
                 </button>
-              ))}
-            </div>
-
-            <div className="assign-modal-actions">
-              <button
-                type="button"
-                className="nav-item"
-                onClick={() => handleAssignSection(assignTargetSection, "")}
-              >
-                Clear assignment
-              </button>
-              <button
-                type="button"
-                className="cta-btn"
-                onClick={() => setAssignTargetSection(null)}
-              >
-                Cancel
-              </button>
+                <button
+                  type="button"
+                  className="cta-btn"
+                  onClick={() => setAssignTargetSection(null)}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </main>
       
       {trip.photoAttribution && (
@@ -1184,7 +1201,8 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel, users }) {
   const isPairedTimeField = (field) =>
     Object.values(pairedFields)
       .flat()
-      .some(([d, t]) => t === field);
+      .some(([d, t]) => t === field)
+  ;
 
   return (
     <form onSubmit={handleSubmit} className="details-form">
@@ -1253,6 +1271,7 @@ function DetailsForm({ sectionKey, existing, onSave, onCancel, users }) {
       <div className="form-row">
         <label>Notes:</label>
         <textarea
+          className="comment-input-box"
           value={formData.notes || ""}
           onChange={(e) => handleChange("notes", e.target.value)}
           rows={3}
@@ -1452,11 +1471,9 @@ function BudgetWidget({
   remainingBudget,
   formatLabel,
   canEdit,
+  open, 
+  setOpen
 }) {
-  const [open, setOpen] = useState(false);
-  const [pinned, setPinned] = useState(true);
-  const [position, setPosition] = useState({ x: null, y: 100 });
-  const [size, setSize] = useState({ width: 220, height: 360 });
   const [isMobile, setIsMobile] = useState(false);
   const [navHeight, setNavHeight] = useState(120); // default fallback
   const bodyRef = React.useRef(null);
@@ -1471,19 +1488,19 @@ function BudgetWidget({
     }
   }, []);
 
-  useEffect(() => {
-    if (open && bodyRef.current) {
-      const contentHeight = bodyRef.current.scrollHeight;
+  // useEffect(() => {
+  //   if (open && bodyRef.current) {
+  //     const contentHeight = bodyRef.current.scrollHeight;
 
-      // Fit widget on screen while showing full content
-      const maxHeight = window.innerHeight - (position.y + 40);
+  //     // Fit widget on screen while showing full content
+  //     const maxHeight = window.innerHeight - (position.y + 40);
 
-      setSize((prev) => ({
-        ...prev,
-        height: Math.min(contentHeight + 40, maxHeight), // +40 for padding/header
-      }));
-    }
-  }, [open, position.y]);
+  //     setSize((prev) => ({
+  //       ...prev,
+  //       height: Math.min(contentHeight + 40, maxHeight), // +40 for padding/header
+  //     }));
+  //   }
+  // }, [open, position.y]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1495,137 +1512,21 @@ function BudgetWidget({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (position.x === null && !isMobile) {
-      const defaultWidth = size.width || 280;
-      setPosition({
-        x: window.innerWidth - defaultWidth - 20,
-        y: 100,
-      });
-    }
-  }, [position.x, size.width, isMobile]);
-
-  const handleHeaderMouseDown = (e) => {
-    if (pinned || isMobile) return;
-    e.preventDefault();
-
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startPos = { ...position };
-
-    const onMouseMove = (moveEvent) => {
-      if (typeof window === "undefined") return;
-      const dx = moveEvent.clientX - startX;
-      const dy = moveEvent.clientY - startY;
-      const maxX = window.innerWidth - 120;
-      const maxY = window.innerHeight - 80;
-      setPosition({
-        x: Math.min(Math.max(10, startPos.x + dx), maxX),
-        y: Math.max(startPos.y + dy, navHeight + 10),
-      });
-    };
-
-    const onMouseUp = () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-
-      // Snap at end of drag
-      setPosition((p) => snapToTop(p));
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-  };
-
-  const handleResizeMouseDown = (e) => {
-    if (isMobile) return;
-    e.preventDefault();
-    e.stopPropagation();
-
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startSize = { ...size };
-
-    const onMouseMove = (moveEvent) => {
-      const dx = moveEvent.clientX - startX;
-      const dy = moveEvent.clientY - startY;
-      setSize((prev) => ({
-        width: 280, // frozen width
-        height: Math.max(220, startSize.height + dy),
-      }));
-    };
-
-    const onMouseUp = () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-  };
-
   const toggleOpen = () => setOpen((o) => !o);
   const togglePinned = (e) => {
     e.stopPropagation();
     setPinned((p) => !p);
   };
 
-  const widgetStyle = {};
-  if (!isMobile) {
-    if (position.x !== null) {
-      widgetStyle.top = position.y;
-      widgetStyle.left = position.x;
-    }
-    widgetStyle.width = size.width;
-    if (open) {
-      widgetStyle.height = size.height;
-    }
-  }
-
   const totalSections = Object.keys(sections).length || 0;
-
-  const SNAP_MARGIN = 60; // px sensitivity near left/right edges
-
-  const snapToTop = (pos) => {
-    if (typeof window === "undefined") return pos;
-
-    const w = size.width;
-    const screenW = window.innerWidth;
-
-    let { x, y } = pos;
-
-    // Snap LEFT (top-left)
-    if (x < SNAP_MARGIN) {
-      x = 20;
-      y = navHeight + 10;
-    }
-
-    // Snap RIGHT (top-right)
-    if (x > screenW - w - SNAP_MARGIN) {
-      x = screenW - w - 20;
-      y = navHeight + 10;
-    }
-
-    // Snap vertically only to top safe zone
-    if (y < navHeight + SNAP_MARGIN) {
-      y = navHeight + 10;
-    }
-
-    return { x, y };
-  };
 
   return (
     <div
-      className={`budget-widget ${open ? "open" : "closed"} ${
-        pinned ? "pinned" : "unpinned"
-      } ${isMobile ? "mobile" : "desktop"}`}
-      style={widgetStyle}
+      className={`budget-widget ${isMobile ? "mobile" : "desktop"} ${
+        open ? "open" : "closed"
+      }`}
     >
-      <div
-        className="budget-widget-header"
-        // (you can re-enable dragging by adding onMouseDown={handleHeaderMouseDown})
-      >
+      <div className="budget-widget-header">
         <button
           type="button"
           className="budget-widget-title"
@@ -1635,22 +1536,21 @@ function BudgetWidget({
           {totalBudget ? ` • $${totalBudget}` : ""}
         </button>
       </div>
-
       <div className="budget-widget-shell">
         <div className="budget-widget-body" ref={bodyRef}>
           <div className="budget-widget-summary">
             <div>
               <span className="budget-label">Total:</span>{" "}
               <input
-  type="number"
-  value={totalBudget}
-  onChange={
-    canEdit
-      ? (e) => setTotalBudget(Number(e.target.value) || 0)
-      : undefined
-  }
-  readOnly={!canEdit}
-/>
+                type="number"
+                value={totalBudget}
+                onChange={
+                  canEdit
+                    ? (e) => setTotalBudget(Number(e.target.value) || 0)
+                    : undefined
+                }
+                readOnly={!canEdit}
+              />
             </div>
             <div>
               <span className="budget-label">Allocated:</span>{" "}
@@ -1682,20 +1582,19 @@ function BudgetWidget({
                   </div>
                   <div className="budget-widget-row-input">
                     <input
-  type="number"
-  value={value || ""}
-  onChange={
-    canEdit
-      ? (e) =>
-          setSectionBudgets((prev) => ({
-            ...prev,
-            [key]: Number(e.target.value) || 0,
-          }))
-      : undefined
-  }
-  readOnly={!canEdit}
-/>
-
+                      type="number"
+                      value={value || ""}
+                      onChange={
+                        canEdit
+                          ? (e) =>
+                              setSectionBudgets((prev) => ({
+                                ...prev,
+                                [key]: Number(e.target.value) || 0,
+                              }))
+                          : undefined
+                      }
+                      readOnly={!canEdit}
+                    />
                     <div className="budget-widget-progress">
                       <div
                         className="budget-widget-progress-fill"
