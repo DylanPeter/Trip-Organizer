@@ -383,6 +383,65 @@ const handleRejectDetails = (sectionKey, index) => {
       [sectionKey]: p[sectionKey] === i ? null : i,
   }));
 
+  const getPreviewSummary = (sectionKey, entry) => {
+    switch (sectionKey) {
+      case "hotels":
+        return [
+          entry.hotelName,
+          entry.checkIn && entry.checkOut
+            ? `${formatDate(entry.checkIn)} → ${formatDate(entry.checkOut)}`
+            : entry.checkIn
+            ? `Check-in: ${formatDate(entry.checkIn)}`
+            : null
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+      case "airTravel":
+        return [
+          entry.airline,
+          entry.departureDate && entry.arrivalDate
+            ? `${formatDate(entry.departureDate)} → ${formatDate(entry.arrivalDate)}`
+            : entry.departureDate
+            ? formatDate(entry.departureDate)
+            : null
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+      case "groundTransit":
+        return [
+          entry.provider,
+          entry.pickupDate && entry.dropoffDate
+            ? `${formatDate(entry.pickupDate)} → ${formatDate(entry.dropoffDate)}`
+            : entry.pickupDate
+            ? formatDate(entry.pickupDate)
+            : null
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+      case "attractions":
+        return [
+          entry.attractionName,
+          entry.date ? formatDate(entry.date) : null
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+      case "foodDining":
+        return [
+          entry.restaurantName,
+          entry.reservationTime ? formatTime12(entry.reservationTime) : null
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+      default:
+        return "Details available";
+    }
+  };
+
   if (!trip)
     return (
       <main className="detail-main">
@@ -444,7 +503,12 @@ const handleRejectDetails = (sectionKey, index) => {
             <div>
               <h1>{trip.name}</h1>
               {isAdmin && (
-                <button onClick={startEdit}>Rename</button>
+                <button 
+                  onClick={startEdit}
+                  className="nav-item"
+                >
+                    Rename
+                </button>
               )}
             </div>
           )}
@@ -486,6 +550,7 @@ const handleRejectDetails = (sectionKey, index) => {
                 : trip.dateStart
                 ? formatDate(trip.dateStart)
                 : "Dates TBA"}
+                <br />
               {isAdmin && (
                 <button
                   type="button"
@@ -592,7 +657,7 @@ const handleRejectDetails = (sectionKey, index) => {
                         <div className="explore-btn-container">
                           <Link
                             to={`/explore/${id}?category=${key}`}
-                            className="cta-btn"
+                            className="explore-btn"
                             style={{ textDecoration: "none" }}
                           >
                             {key === "hotels" && "Explore Hotels"}
@@ -635,154 +700,65 @@ const handleRejectDetails = (sectionKey, index) => {
                         
                             return (
                               <div key={i} className="details-entry">
-                                <div className="details-preview">
-                                  {/* Status pills */}
-                                  {isPending && (
-                                    <span className="details-status-pill details-status-pending">
-                                      {isAdmin ? "Pending approval" : "Awaiting admin approval"}
-                                    </span>
-                                  )}
-                                  {isRejected && isAdmin && (
-                                    <span className="details-status-pill details-status-rejected">
-                                      Rejected
-                                    </span>
-                                  )}
-                                  {/* Summary line */}
-                                  {Object.entries(entry)
-                                    .filter(
-                                      ([k, v]) =>
-                                        ![
-                                          "notes",
-                                          "pollingEnabled",
-                                          "status",
-                                          "createdBy",
-                                          "assignedTo",
-                                        ].includes(k) && v
-                                    )
-                                    .map(([field, value]) => {
-                                      const pairedTimeFields = new Set([
-                                        "checkInTime",
-                                        "checkOutTime",
-                                        "departureTime",
-                                        "arrivalTime",
-                                        "pickupTime",
-                                        "dropoffTime",
-                                      ]);
-                        
-                                      if (pairedTimeFields.has(field)) return null;
-                        
-                                      if (
-                                        field === "checkIn" &&
-                                        entry.checkIn &&
-                                        entry.checkInTime
-                                      ) {
-                                        return formatDateTime(entry.checkIn, entry.checkInTime);
-                                      }
-                                      if (
-                                        field === "checkOut" &&
-                                        entry.checkOut &&
-                                        entry.checkOutTime
-                                      ) {
-                                        return formatDateTime(entry.checkOut, entry.checkOutTime);
-                                      }
-                                      if (
-                                        field === "departureDate" &&
-                                        entry.departureDate &&
-                                        entry.departureTime
-                                      ) {
-                                        return formatDateTime(
-                                          entry.departureDate,
-                                          entry.departureTime
-                                        );
-                                      }
-                                      if (
-                                        field === "arrivalDate" &&
-                                        entry.arrivalDate &&
-                                        entry.arrivalTime
-                                      ) {
-                                        return formatDateTime(
-                                          entry.arrivalDate,
-                                          entry.arrivalTime
-                                        );
-                                      }
-                                      if (
-                                        field === "pickupDate" &&
-                                        entry.pickupDate &&
-                                        entry.pickupTime
-                                      ) {
-                                        return formatDateTime(
-                                          entry.pickupDate,
-                                          entry.pickupTime
-                                        );
-                                      }
-                                      if (
-                                        field === "dropoffDate" &&
-                                        entry.dropoffDate &&
-                                        entry.dropoffTime
-                                      ) {
-                                        return formatDateTime(
-                                          entry.dropoffDate,
-                                          entry.dropoffTime
-                                        );
-                                      }
-                                      if (
-                                        field.toLowerCase().includes("time") &&
-                                        typeof value === "string" &&
-                                        value.includes(":")
-                                      ) {
-                                        return formatTime12(value);
-                                      }
-                                      return value;
-                                    })
-                                    .join(" • ")}
-                                </div>
-                        
-                                <div className="form-actions">
-                                  <button
-                                    className="nav-item"
-                                    onClick={() => toggleEntry(key, i)}
-                                  >
-                                    {expandedEntry[key] === i ? "Hide Details" : "View Details"}
-                                  </button>
-                        
-                                  {canEditEntry && (
+                                <div className="details-row-top">
+                                  <div className="details-preview">
+                                    {/* Status pills */}
+                                    {isPending && (
+                                      <span className="details-status-pill details-status-pending">
+                                        {isAdmin ? "Pending approval... " : "Awaiting admin approval... "}
+                                      </span>
+                                    )}
+                                    {isRejected && isAdmin && (
+                                      <span className="details-status-pill details-status-rejected">
+                                        Rejected
+                                      </span>
+                                    )}
+                                    {/* Summary line */}
+                                    {getPreviewSummary(key, entry) || "Details available"}
+                                  </div>
+                                  <div className="details-actions">
                                     <button
                                       className="nav-item"
-                                      onClick={() =>
-                                        setShowForm((p) => ({ ...p, [key]: i }))
-                                      }
+                                      onClick={() => toggleEntry(key, i)}
                                     >
-                                      Edit
+                                      {expandedEntry[key] === i ? "Hide Details" : "View Details"}
                                     </button>
-                                  )}
-                        
-                                  {canDeleteEntry && (
-                                    <button
-                                      className="nav-item"
-                                      onClick={() => handleDeleteDetails(key, i)}
-                                    >
-                                      Delete
-                                    </button>
-                                  )}
-                        
-                                  {isAdmin && isPending && (
-                                    <>
+                                    {canEditEntry && (
                                       <button
                                         className="nav-item"
-                                        onClick={() => handleApproveDetails(key, i)}
+                                        onClick={() =>
+                                          setShowForm((p) => ({ ...p, [key]: i }))
+                                        }
                                       >
-                                        ✅ Approve
+                                        Edit
                                       </button>
+                                    )}
+                                    {canDeleteEntry && (
                                       <button
                                         className="nav-item"
-                                        onClick={() => handleRejectDetails(key, i)}
+                                        onClick={() => handleDeleteDetails(key, i)}
                                       >
-                                        ❌ Reject
+                                        Delete
                                       </button>
-                                    </>
-                                  )}
+                                    )}
+                                    {isAdmin && isPending && (
+                                      <>
+                                        <button
+                                          className="nav-item"
+                                          onClick={() => handleApproveDetails(key, i)}
+                                        >
+                                          ✅ Approve
+                                        </button>
+                                        <button
+                                          className="nav-item"
+                                          onClick={() => handleRejectDetails(key, i)}
+                                        >
+                                          ❌ Reject
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
-                        
                                 {expandedEntry[key] === i && (
                                   <>
                                     {renderFullDetails(entry, formatLabel)}
