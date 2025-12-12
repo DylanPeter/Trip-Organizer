@@ -67,7 +67,7 @@
 
 /* Logout button in card */
 .profile-logout-btn {
-  background-color: #c0392b;
+  background-color: var(--color-primary);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -80,7 +80,7 @@
 }
 
 .profile-logout-btn:hover {
-  background-color: #992d22;
+  background-color: var(--color-secondary);
   transform: translateY(-1px);
 }
 
@@ -90,6 +90,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  padding: 0 0.5rem;
 }
 
 .profile-form label span {
@@ -109,7 +110,7 @@
 
 .profile-form button {
   margin-top: 0.5rem;
-  background-color: #001b2e;
+  background-color: var(--color-accent-1);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -121,7 +122,7 @@
 }
 
 .profile-form button:hover:not(:disabled) {
-  background-color: #294c60;
+  background-color: var(--color-accent-2);
   transform: translateY(-1px);
 }
 
@@ -161,7 +162,7 @@
 }
 
 .profile-actions-buttons button {
-  background-color: #294c60;
+  background-color: var(--color-primary);
   color: white;
   padding: 0.75rem 1rem;
   border: none;
@@ -172,7 +173,7 @@
 }
 
 .profile-actions-buttons button:hover {
-  background-color: #1d394b;
+  background-color: var(--color-secondary);
   transform: translateY(-1px);
 }
 
@@ -233,260 +234,121 @@ header.navbar .nav-avatar {
 .profile-form input,
 .profile-form textarea {
   width: 100%;
-  padding: 0.4rem 0.01rem;       /* matches current UI */
+  padding: 0.55rem 0.75rem;       /* matches current UI */
   border: 1px solid #d0d7de;
   border-radius: 6px;
   font-size: 1rem;
   background-color: #f9fafb;
   transition: border-color 0.2s ease, background 0.2s ease;
+  box-sizing: border-box;
 }
 
 .profile-form textarea {
   min-height: 60px;/* Overall layout: left profile card + right content */
-.profile-layout {
-  max-width: 1100px;
-  margin: 2.5rem auto 3rem;
-  padding: 0 1.5rem;
-  display: flex;
-  gap: 2rem;
-  align-items: flex-start;
-}
-
-/* Left card */
-.profile-page {
-  flex: 0 0 320px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: 2rem 1.75rem 1.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  text-align: center;
-}
-
-/* Avatar block */
-.profile-avatar-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.profile-avatar-large {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #294c60;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.profile-avatar-upload {
-  background-color: #294c60;
-  color: #fff;
-  font-weight: 500;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s ease;
-}
-
-.profile-avatar-upload:hover {
-  background-color: #1d394b;
-}
-
-/* Name + email */
-.profile-name {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #001b2e;
-  margin: 0.5rem 0 0.15rem;
-}
-
-.profile-email {
-  font-size: 0.95rem;
-  color: #6b7280;
-  margin: 0 0 1rem;
-}
-
-/* Logout button in card */
-.profile-logout-btn {
-  background-color: #c0392b;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  margin-bottom: 1.25rem;
-  transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.profile-logout-btn:hover {
-  background-color: #992d22;
-  transform: translateY(-1px);
-}
-
-/* Form fields inside card */
-.profile-form {
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.profile-form label span {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 0.25rem;
-  display: block;
-}
-
-.profile-form input:focus,
-.profile-form textarea:focus {
-  outline: none;
-  border-color: #294c60;
-  background-color: #ffffff;
-}
-
-.profile-form button {
-  margin-top: 0.5rem;
-  background-color: #001b2e;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.75rem;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.profile-form button:hover:not(:disabled) {
-  background-color: #294c60;
-  transform: translateY(-1px);
-}
-
-.profile-form button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Right column */
-.profile-right {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-}
-
-/* Quick actions (reusing earlier styles) */
-.profile-actions {
-  margin-top: 0;
-  padding: 1.25rem 1.5rem;
-  border-radius: 16px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-}
-
-.profile-actions h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #001b2e;
-  margin-bottom: 1rem;
-}
-
-.profile-actions-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.profile-actions-buttons button {
-  background-color: #294c60;
-  color: white;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.profile-actions-buttons button:hover {
-  background-color: #1d394b;
-  transform: translateY(-1px);
-}
-
-/* Trip lists (you already have most of this; keep or merge) */
-.profile-trips {
-  border-radius: 16px;
-  background-color: #ffffff;
-  padding: 1.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-}
-
-/* Navbar layout (keeps it horizontal) */
-.navbar-container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0.75rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* Nav links row */
-.navbar-links {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-/* ✅ Force small avatar in navbar */
-header.navbar .nav-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: inline-block;
-}
-
-@media (max-width: 800px) {
-  .profile-layout {
-    flex-direction: column;
-  }
-
-  .profile-page {
-    flex: none;
-    width: 100%;
-  }
-
-  .profile-right {
-    width: 100%;
-  }
-}
-
-.profile-form input,
-.profile-form textarea {
-  width: 100%;
-  padding: 0.6rem 0.75rem;       /* matches current UI */
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  font-size: 1rem;
-  background-color: #f9fafb;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.profile-form textarea {
-  min-height: 120px;
-  padding-right: 1.25rem; 
 }
 
 .bio-input {
-  padding-right: 1rem;
-
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 0.75rem;
+  background: #fff;
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  width: 100%;
+  resize: vertical;
+  min-height: 70px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
+
+.bio-input:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(227, 111, 67, 0.25);
+}
+
+/* ============================================================
+   TRIP SECTION TYPOGRAPHY HIERARCHY
+   (Overrides – add at bottom of Profile.css)
+============================================================ */
+
+/* Section header: "Your Trips" */
+.profile-trips > h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #001b2e;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.3px;
+}
+
+/* Group header: "Upcoming Trips", "Past Trips" */
+.profile-trips-group > h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #294c60;
+  margin: 1.5rem 0 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid #d8e0e7;
+  letter-spacing: -0.2px;
+}
+
+/* Trip card container */
+.profile-trip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+/* Each trip card */
+.profile-trip-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 1.1rem;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* Trip title inside card */
+.profile-trip-card h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #001b2e;
+  margin: 0 0 0.1rem;
+}
+
+/* Location line */
+.profile-trip-location {
+  font-size: 0.9rem;
+  color: #5a6872;
+  margin: 0.1rem 0;
+  font-weight: 500;
+}
+
+/* Dates line */
+.profile-trip-dates {
+  font-size: 0.85rem;
+  color: #7f8894;
+  margin: 0;
+}
+
+/* View button */
+.profile-trip-view {
+  background: #294c60;
+  color: white;
+  padding: 0.45rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.profile-trip-view:hover {
+  background: #1d394b;
+  transform: translateY(-1px);
 }

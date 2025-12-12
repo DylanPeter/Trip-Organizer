@@ -236,7 +236,7 @@ export default function Profile() {
         <section className="profile-right">
           {/* QUICK ACTIONS */}
           <div className="profile-actions">
-            <h2>Your Actions</h2>
+            {/* <h2>Your Actions</h2> */}
             <div className="profile-actions-buttons">
               <button
                 onClick={() => (window.location.href = "/trips/new")}

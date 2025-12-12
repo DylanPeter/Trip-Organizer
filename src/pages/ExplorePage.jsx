@@ -3,6 +3,7 @@ import { useParams, useSearchParams, Link } from "react-router-dom";
 import { getTrip } from "../utils/tripstore";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "../styles/Explore.css";
 
 import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -126,49 +127,53 @@ export default function ExplorePage() {
       {isLoading && <p style={{ fontStyle: "italic" }}>{cat?.message}</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {lat && lon && (
-        <div style={{ height: "400px", marginBottom: "1rem" }}>
-          <MapContainer center={[lat, lon]} zoom={13} style={{ height: "100%", width: "80%", margin: "0 auto" }}>
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              maxZoom={19}
-              reuseTiles={true}
-              updateWhenIdle={true}
-            />
-            <Marker position={[lat, lon]}>
-              <Popup>{trip.location}</Popup>
-            </Marker>
-            {places.map((p, i) => (
-              <Marker key={i} position={[p.lat, p.lon]}>
-                <Popup>
-                  <strong>{p.name || "Unnamed"}</strong>
-                  <br />
-                  {p.address_line2 || p.formatted}
-                </Popup>
+      <div className="explore-flex">
+        {lat && lon && (
+          <div className="explore-map">
+            <MapContainer center={[lat, lon]} zoom={13} className="leaflet-map">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={19}
+                reuseTiles={true}
+                updateWhenIdle={true}
+              />
+              <Marker position={[lat, lon]}>
+                <Popup>{trip.location}</Popup>
               </Marker>
-            ))}
-          </MapContainer>
-        </div>
-      )}
+              {places.map((p, i) => (
+                <Marker key={i} position={[p.lat, p.lon]}>
+                  <Popup>
+                    <strong>{p.name || "Unnamed"}</strong>
+                    <br />
+                    {p.address_line2 || p.formatted}
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+        )}
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {places.map((p, i) => (
-          <li
-            key={i}
-            style={{
-              marginBottom: "1rem",
-              padding: "0.75rem",
-              border: "1px solid #ccc",
-              borderRadius: "0.5rem",
-            }}
-          >
-            <strong>{p.name || "Unnamed"}</strong>
-            <div>{p.address_line2 || p.formatted}</div>
-            {p.distance && <div>{(p.distance / 1000).toFixed(1)} km away</div>}
-          </li>
-        ))}
-      </ul>
+        <div className="explore-results">
+          <ul className="explore-list">
+            {places.map((p, i) => (
+              <li
+                key={i}
+                style={{
+                  marginBottom: "1rem",
+                  padding: "0.75rem",
+                  border: "1px solid #ccc",
+                  borderRadius: "0.5rem",
+                }}
+              >
+                <strong>{p.name || "Unnamed"}</strong>
+                <div>{p.address_line2 || p.formatted}</div>
+                {p.distance && <div>{(p.distance / 1000).toFixed(1)} km away</div>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
       {places.length > 0 && !isLoading && (
         <button className="cta-btn" onClick={loadMore}>

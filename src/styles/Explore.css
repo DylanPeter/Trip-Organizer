@@ -1,0 +1,152 @@
+/* Lower the map's stacking so it stays *behind* your navbar */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+/* Page container spacing */
+.page-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Center map & give it a normal stacking context */
+.explore-map {
+  width: 80%;
+  max-width: 800px;
+  height: 400px;
+  margin: 0 auto 1.5rem;
+  position: relative;
+}
+
+.leaflet-container {
+  z-index: 1 !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Centered results wrapper */
+.explore-results {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Remove browser list styling */
+.explore-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Individual place card */
+.explore-list li {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #d5dbe0;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.explore-list li strong {
+  font-size: 1.05rem;
+  color: #001b2e;
+}
+
+.explore-list li div {
+  font-size: 0.9rem;
+  color: #5a6872;
+}
+
+/* Load More button */
+.cta-btn {
+  display: block;
+  margin: 1.5rem auto;
+  padding: 0.75rem 1.5rem;
+  background: #294c60;
+  color: #fff;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.cta-btn:hover {
+  background: #1d394b;
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   SIDE-BY-SIDE MAP + RESULTS LAYOUT (Desktop)
+============================================================ */
+
+.explore-flex {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+/* Map takes ~60% of space */
+.explore-map {
+  flex: 0 0 60%;
+  height: 500px;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Results take ~40%, scroll independently */
+.explore-results {
+  flex: 0 0 40%;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Hide browser scrollbars (still scrollable) */
+.explore-results::-webkit-scrollbar {
+  width: 6px;
+}
+.explore-results::-webkit-scrollbar-thumb {
+  background: #d0d7de;
+  border-radius: 6px;
+}
+
+/* List alignment inside results panel */
+.explore-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/* ============================================================
+   MOBILE FRIENDLY (stacked layout under 900px)
+============================================================ */
+
+@media (max-width: 900px) {
+  .explore-flex {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .explore-map,
+  .explore-results {
+    flex: unset;
+    width: 100%;
+    max-height: unset;
+    overflow: visible;
+  }
+}
+
+/* Ensure MapContainer actually has height */
+.leaflet-map {
+  height: 100% !important;
+  width: 100% !important;
+}
