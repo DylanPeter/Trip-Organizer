@@ -185,16 +185,6 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
-/* Navbar layout (keeps it horizontal) */
-.navbar-container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0.75rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 /* Nav links row */
 .navbar-links {
   display: flex;
