@@ -35,7 +35,7 @@
   right: 0; 
   width: 300px;
   /* height: 100%; */
-  background: rgba(255,255,255,0.88);
+  background: rgba(255,255,255);
   backdrop-filter: blur(8px);
   border-left: 1px solid rgba(0,0,0,0.1);
   box-shadow: -4px 0 20px rgba(0,0,0,0.2);
@@ -93,7 +93,7 @@
 
 .budget-widget.desktop.open .budget-widget-body {
   max-height: 600px;
-  opacity: 1;
+  /* opacity: 1; */
   padding: 12px 14px 10px;
   overflow-y: auto;
 }
