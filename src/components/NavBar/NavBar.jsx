@@ -1,6 +1,7 @@
 import { NavLink, Link } from "react-router-dom";
 import UserBadge from "../UserBadge";
 import "../../styles/NavBar.css";
+import logo from "../../assets/ustinerary-logo.png";
 // 👇 NEW: import the switcher
 import TestUserSwitcher from "./TestUserSwitcher";
 
@@ -13,7 +14,7 @@ export default function NavBar() {
           {/* <span className="brand-primary">Us</span>
           <span className="brand-secondary">Tinerary</span> */}
           <img 
-            src="src/assets/usTinerary-logo.png" 
+            src={logo}
             alt="usTinerary logo" 
             className="logo"
           />
