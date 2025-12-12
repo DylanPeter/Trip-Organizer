@@ -98,29 +98,32 @@ export default function SectionComments({ tripId, sectionKey, user }) {
         )}
         <div className="flex-1">
           <textarea
-            className="w-full rounded-lg border border-gray-300 p-2 text-sm"
+            className="comment-input-box"
             rows={3}
             placeholder="Add a comment…"
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
-          <div className="mt-2 flex justify-end gap-2">
+
+          <div className="comment-actions">
             <button
-              className="px-3 py-1.5 text-sm rounded-lg border"
-              onClick={() => setText("")}
+              className="comment-cancel-btn"
               type="button"
+              onClick={() => setText("")}
             >
               Cancel
             </button>
+
             <button
-              className="px-3 py-1.5 text-sm rounded-lg bg-[#F4A482] text-white hover:opacity-90"
-              onClick={handlePost}
+              className="comment-submit-btn"
               type="button"
+              onClick={handlePost}
               disabled={!text.trim()}
             >
               Post
             </button>
           </div>
+
         </div>
       </div>
     </div>
