@@ -22,6 +22,7 @@ body {
   font-family: var(--font-primary);
   font-weight: var(--font-weight-normal);
   font-size: var(--font-size-base);
+  margin: 0;
 }
 
 h1, h2, h3 {
@@ -39,7 +40,7 @@ h1, h2, h3 {
   text-align: left;
   transition: box-shadow 0.25s ease, transform 0.15s ease;
 }
-.feature-card:hover { box-shadow: 0 6px 14px rgba(0,0,0,0.08); transform: translateY(-2px); }
+/* .feature-card:hover { box-shadow: 0 6px 14px rgba(0,0,0,0.08); transform: translateY(-2px); } */
 .feature-card h2 { margin-bottom: 0.5rem; }
 .feature-card p { line-height: 1.5; }
 

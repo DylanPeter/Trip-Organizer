@@ -8,11 +8,15 @@ export default function NavBar() {
   return (
     <header className="navbar">
       <div className="navbar-container">
-
         {/* Logo */}
         <Link to="/" className="navbar-logo">
-          <span className="brand-primary">Us</span>
-          <span className="brand-secondary">Tinerary</span>
+          {/* <span className="brand-primary">Us</span>
+          <span className="brand-secondary">Tinerary</span> */}
+          <img 
+            src="src/assets/usTinerary-logo.png" 
+            alt="usTinerary logo" 
+            className="logo"
+          />
         </Link>
 
         {/* Links */}

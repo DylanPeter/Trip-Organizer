@@ -1,6 +1,12 @@
+.logo{
+  height: 70px;         /* Adjust to match nav size */
+  width: auto;          /* Preserve aspect ratio */
+  display: block;       /* Removes baseline gap */
+  object-fit: contain;  /* Ensures clean scaling */
+}
 /* ===== NavBar Styling ===== */
 .navbar {
-  background: var(--color-accent-1);
+  background: #0F3559;
   color: #fff;
   padding: 1rem 0;
   position: sticky;
@@ -12,7 +18,7 @@
 .navbar-container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0.75rem 1.5rem;
+  /* padding: 0.25rem 1.5rem; */
   display: flex;
   align-items: center;
   justify-content: space-between;

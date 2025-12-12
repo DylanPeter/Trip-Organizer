@@ -5,8 +5,13 @@
   /* background-color: white; */
   border-radius: 1rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  background-color: rgba(255, 255, 255, 0.85); /* <— control transparency here */
+  background-color: rgba(255, 255, 255, 0.55); /* <— control transparency here */
   backdrop-filter: blur(4px);                  /* optional: classy glass effect */
+}
+
+.trip-background-wrapper {
+    position: relative;
+    overflow: hidden;
 }
 
 .trip-header {
@@ -1108,4 +1113,20 @@
 .collapse-icon {
   font-size: 1rem;
   opacity: 0.75;
+}
+
+.photo-attribution {
+    position: fixed;
+    bottom: 10px;
+    right: 12px;
+    font-size: .75rem;
+    color: #ffffffd9;
+    text-shadow: 0 0 4px rgba(0,0,0,.5);
+    z-index: 999
+}
+
+.photo-attribution a {
+    color: inherit;
+    text-decoration: underline;
+    opacity: .9
 }
